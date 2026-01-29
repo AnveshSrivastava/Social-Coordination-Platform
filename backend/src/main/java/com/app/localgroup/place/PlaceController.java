@@ -31,7 +31,7 @@ public class PlaceController {
                 .id(p.getId())
                 .name(p.getName())
                 .category(p.getCategory())
-                .geoLocation(p.getGeoLocation())
+                .coordinates(p.getGeoLocation() != null ? List.of(p.getGeoLocation().getX(), p.getGeoLocation().getY()) : null)
                 .tags(p.getTags())
                 .activeGroupCount(placeService.activeGroupCount(p.getId()))
                 .build()).toList();
@@ -45,7 +45,7 @@ public class PlaceController {
                 .id(p.getId())
                 .name(p.getName())
                 .category(p.getCategory())
-                .geoLocation(p.getGeoLocation())
+                .coordinates(p.getGeoLocation() != null ? List.of(p.getGeoLocation().getX(), p.getGeoLocation().getY()) : null)
                 .tags(p.getTags())
                 .activeGroupCount(placeService.activeGroupCount(p.getId()))
                 .build())
@@ -62,7 +62,7 @@ public class PlaceController {
             .id(p.getId())
             .name(p.getName())
             .category(p.getCategory())
-            .geoLocation(p.getGeoLocation())
+            .coordinates(p.getGeoLocation() != null ? List.of(p.getGeoLocation().getX(), p.getGeoLocation().getY()) : null)
             .tags(p.getTags())
             .activeGroupCount(placeService.activeGroupCount(p.getId()))
             .build()).toList();

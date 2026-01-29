@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,19 +23,18 @@ public class PlaceService {
         return placeRepository.findById(id);
     }
 
+    /**
+     * Find places within radius meters of the given location using MongoDB $nearSphere geo query.
+     * Uses the 2dsphere index on geoLocation field for efficient spatial queries.
+     * 
+     * @param lat latitude of center point
+     * @param lng longitude of center point
+     * @param radiusMeters search radius in meters
+     * @return List of places within the specified radius, sorted by distance
+     */
     public List<Place> findNearby(double lat, double lng, double radiusMeters) {
-        // Placeholder simple distance filter (Haversine would be better). We store geoLocation as [lat,lng]
-        return placeRepository.findAll().stream().filter(p -> {
-            if (p.getGeoLocation() == null || p.getGeoLocation().length < 2) return false;
-            double plat = p.getGeoLocation()[0];
-            double plng = p.getGeoLocation()[1];
-            double dx = Math.toRadians(plat - lat);
-            double dy = Math.toRadians(plng - lng);
-            double a = Math.sin(dx/2)*Math.sin(dx/2) + Math.cos(Math.toRadians(lat))*Math.cos(Math.toRadians(plat))*Math.sin(dy/2)*Math.sin(dy/2);
-            double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            double distance = 6371000 * c; // meters
-            return distance <= radiusMeters;
-        }).collect(Collectors.toList());
+        // MongoDB $nearSphere expects coordinates in [lng, lat] order (GeoJSON standard)
+        return placeRepository.findNearby(lng, lat, radiusMeters);
     }
 
     public long activeGroupCount(String placeId) {

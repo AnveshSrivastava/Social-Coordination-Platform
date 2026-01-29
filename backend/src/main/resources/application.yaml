@@ -1,13 +1,11 @@
 spring:
   application:
     name: social-coordination-platform
+  mongodb:
+    auto-index-creation: true
+    uri: mongodb+srv://anveshsrivastava9_db_user:5heRlpNb68ZqhzRz@socialcoordinationplatf.3ycjbgb.mongodb.net/social_coordination?retryWrites=true&w=majority&appName=SocialCoordinationPlatform
 server:
   port: 8080
-
-spring:
-  data:
-    mongodb:
-      uri: mongodb://localhost:27017/localgroupdb # replace with Atlas URI in production
 
 app:
   jwt:

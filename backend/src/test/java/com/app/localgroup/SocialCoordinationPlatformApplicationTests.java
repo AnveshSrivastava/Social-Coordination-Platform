@@ -1,4 +1,4 @@
-package com.example.social_coordination_platform;
+package com.app.localgroup;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

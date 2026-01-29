@@ -3,5 +3,5 @@
 
 package com.example.social_coordination_platform;
 
-public class Placeholder {
+class Placeholder {
 }

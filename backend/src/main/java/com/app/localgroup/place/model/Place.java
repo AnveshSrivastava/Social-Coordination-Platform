@@ -2,8 +2,9 @@ package com.app.localgroup.place.model;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
+import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
 import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
@@ -14,16 +15,16 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Place {
+
     @Id
     private String id;
 
     private String name;
 
-    @Indexed
     private Category category;
 
-    @GeoSpatialIndexed
-    private double[] geoLocation; // [lat, lng]
+    @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
+    private GeoJsonPoint geoLocation;   // GeoJSON Point (lng, lat)
 
     private List<String> tags;
 

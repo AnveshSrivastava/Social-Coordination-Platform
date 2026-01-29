@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface GroupRepository extends MongoRepository<Group, String> {
     List<Group> findByCreatorIdAndStatusNot(String creatorId, Group.Status status);
+    long countByCreatorIdAndStatusNot(String creatorId, Group.Status status);
 }

@@ -12,7 +12,7 @@ public class PlaceDto {
     private String id;
     private String name;
     private Place.Category category;
-    private double[] geoLocation;
+    private List<Double> coordinates; // GeoJSON: [lng, lat]
     private List<String> tags;
     private long activeGroupCount;
 }
