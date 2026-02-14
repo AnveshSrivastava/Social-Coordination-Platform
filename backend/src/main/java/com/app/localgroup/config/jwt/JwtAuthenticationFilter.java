@@ -2,8 +2,7 @@ package com.app.localgroup.config.jwt;
 
 import com.app.localgroup.common.Constants;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,8 +27,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-    @Value("${app.jwt.secret}")
-    private String jwtSecret;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     /**
      * Skip JWT validation for public auth endpoints
@@ -58,13 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = header.substring(Constants.TOKEN_PREFIX.length());
 
         try {
-            Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+                Claims claims = jwtUtil.parseClaims(token);
 
             String userId = claims.getSubject();
 
