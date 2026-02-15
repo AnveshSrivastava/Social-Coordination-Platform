@@ -27,28 +27,14 @@ public class PlaceController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<PlaceDto>>> list(@RequestParam(name = "category", required = false) Optional<Place.Category> category) {
         List<Place> places = placeService.findAll(category);
-        List<PlaceDto> dtos = places.stream().map(p -> PlaceDto.builder()
-                .id(p.getId())
-                .name(p.getName())
-                .category(p.getCategory())
-                .coordinates(p.getGeoLocation() != null ? List.of(p.getGeoLocation().getX(), p.getGeoLocation().getY()) : null)
-                .tags(p.getTags())
-                .activeGroupCount(placeService.activeGroupCount(p.getId()))
-                .build()).toList();
+        List<PlaceDto> dtos = places.stream().map(placeService::toDto).toList();
         return ResponseEntity.ok(ApiResponse.<List<PlaceDto>>builder().success(true).data(dtos).message("OK").build());
     }
 
     @GetMapping("/{id}")
-        public ResponseEntity<ApiResponse<PlaceDto>> get(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<PlaceDto>> get(@PathVariable String id) {
         return placeService.findById(id)
-            .map(p -> PlaceDto.builder()
-                .id(p.getId())
-                .name(p.getName())
-                .category(p.getCategory())
-                .coordinates(p.getGeoLocation() != null ? List.of(p.getGeoLocation().getX(), p.getGeoLocation().getY()) : null)
-                .tags(p.getTags())
-                .activeGroupCount(placeService.activeGroupCount(p.getId()))
-                .build())
+            .map(placeService::toDto)
             .map(d -> ResponseEntity.ok(ApiResponse.<PlaceDto>builder().success(true).data(d).message("OK").build()))
             .orElseGet(() -> ResponseEntity.status(404).body(ApiResponse.<PlaceDto>builder().success(false).message("Place not found").build()));
     }
@@ -58,14 +44,7 @@ public class PlaceController {
                                                            @RequestParam @NotNull double lng,
                                                            @RequestParam(name = "radius", defaultValue = "1000") double radius) {
         List<Place> places = placeService.findNearby(lat, lng, radius);
-        List<PlaceDto> dtos = places.stream().map(p -> PlaceDto.builder()
-            .id(p.getId())
-            .name(p.getName())
-            .category(p.getCategory())
-            .coordinates(p.getGeoLocation() != null ? List.of(p.getGeoLocation().getX(), p.getGeoLocation().getY()) : null)
-            .tags(p.getTags())
-            .activeGroupCount(placeService.activeGroupCount(p.getId()))
-            .build()).toList();
+        List<PlaceDto> dtos = places.stream().map(placeService::toDto).toList();
         return ResponseEntity.ok(ApiResponse.<List<PlaceDto>>builder().success(true).data(dtos).message("OK").build());
     }
 }

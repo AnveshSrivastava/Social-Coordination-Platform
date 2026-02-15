@@ -28,7 +28,19 @@ public class Place {
 
     private List<String> tags;
 
+    // Dynamic place creation fields (optional, backward compatible)
+    private String externalPlaceId;     // External API ID (e.g., Google Places ID)
+    private Double latitude;            // Latitude coordinate
+    private Double longitude;           // Longitude coordinate
+    @Builder.Default
+    private PlaceSource source = PlaceSource.INTERNAL;  // Source of place data
+
     public enum Category {
         CAFE, RESTAURANT, ACTIVITY, CAMPUS
+    }
+
+    public enum PlaceSource {
+        INTERNAL,   // Manually created places
+        MAP         // Created from external map selection
     }
 }

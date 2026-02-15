@@ -7,6 +7,7 @@ import com.app.localgroup.group.model.Group;
 import com.app.localgroup.group.model.GroupMember;
 import com.app.localgroup.group.repository.GroupMemberRepository;
 import com.app.localgroup.group.repository.GroupRepository;
+import com.app.localgroup.place.PlaceService;
 import com.app.localgroup.user.model.User;
 import com.app.localgroup.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,10 +29,17 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final UserRepository userRepository;
+    private final PlaceService placeService;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public GroupDto createGroup(String creatorId, CreateGroupDto dto) {
+        // Validate that at least one place selection method is provided
+        if ((dto.getPlaceId() == null || dto.getPlaceId().isBlank()) && 
+            dto.getMapPlace() == null) {
+            throw new IllegalArgumentException("Either placeId or mapPlace must be provided");
+        }
+
         // Validate creator active groups
         long activeCount = groupRepository.countByCreatorIdAndStatusNot(creatorId, Group.Status.EXPIRED);
         if (activeCount >= 2) {
@@ -41,8 +49,20 @@ public class GroupService {
             throw new IllegalArgumentException("maxSize must be between 2 and 6");
         }
 
+        // FLOW 1: Legacy flow with placeId (existing manually created places)
+        String resolvedPlaceId;
+        if (dto.getPlaceId() != null && !dto.getPlaceId().isBlank()) {
+            resolvedPlaceId = dto.getPlaceId();
+            log.debug("Using existing place for group creation: {}", resolvedPlaceId);
+        } 
+        // FLOW 2: New flow with mapPlace (dynamic places from map selection)
+        else {
+            resolvedPlaceId = placeService.findOrCreateMapPlace(dto.getMapPlace());
+            log.debug("Group using dynamic place (new or reused): {}", resolvedPlaceId);
+        }
+
         Group g = Group.builder()
-                .placeId(dto.getPlaceId())
+                .placeId(resolvedPlaceId)
                 .creatorId(creatorId)
                 .dateTime(dto.getDateTime())
                 .maxSize(dto.getMaxSize())
@@ -63,7 +83,7 @@ public class GroupService {
         GroupMember gm = GroupMember.builder().groupId(saved.getId()).userId(creatorId).confirmed(true).build();
         groupMemberRepository.save(gm);
 
-        log.info("Group created: {} by {}", saved.getId(), creatorId);
+        log.info("Group created: {} by {} with place: {}", saved.getId(), creatorId, resolvedPlaceId);
 
         return toDto(saved);
     }
