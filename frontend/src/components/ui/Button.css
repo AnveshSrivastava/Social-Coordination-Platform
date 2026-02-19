@@ -1,0 +1,124 @@
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    border-radius: var(--radius-md);
+    font-weight: var(--font-weight-semibold);
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    line-height: 1;
+}
+
+.btn:focus-visible {
+    box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+.btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Variants */
+.btn--primary {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+}
+
+.btn--primary:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn--primary:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.btn--secondary {
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+}
+
+.btn--secondary:hover:not(:disabled) {
+    background: #ddd6fe;
+}
+
+.btn--outline {
+    background: transparent;
+    color: var(--color-primary);
+    border: 1.5px solid var(--color-primary);
+}
+
+.btn--outline:hover:not(:disabled) {
+    background: var(--color-primary-bg);
+}
+
+.btn--ghost {
+    background: transparent;
+    color: var(--color-text-secondary);
+}
+
+.btn--ghost:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+}
+
+.btn--danger {
+    background: var(--color-danger);
+    color: var(--color-text-inverse);
+}
+
+.btn--danger:hover:not(:disabled) {
+    background: var(--color-danger-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Sizes */
+.btn--sm {
+    padding: 6px 14px;
+    font-size: var(--font-size-xs);
+    border-radius: var(--radius-sm);
+}
+
+.btn--md {
+    padding: 10px 20px;
+    font-size: var(--font-size-sm);
+}
+
+.btn--lg {
+    padding: 14px 28px;
+    font-size: var(--font-size-md);
+    border-radius: var(--radius-lg);
+}
+
+.btn--full {
+    width: 100%;
+}
+
+/* Loading */
+.btn--loading .btn-label {
+    opacity: 0;
+}
+
+.btn-spinner {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+.btn-icon {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}

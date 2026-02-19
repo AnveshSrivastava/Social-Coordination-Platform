@@ -1,0 +1,33 @@
+.confirm-banner {
+    position: fixed;
+    top: 72px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-5);
+    background: var(--color-warning-bg);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: var(--radius-lg);
+    z-index: var(--z-sticky);
+    box-shadow: var(--shadow-lg);
+    max-width: 90vw;
+}
+
+.confirm-banner-icon {
+    color: var(--color-warning);
+    flex-shrink: 0;
+}
+
+.confirm-banner-content strong {
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    display: block;
+}
+
+.confirm-banner-content p {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    margin-top: 2px;
+}

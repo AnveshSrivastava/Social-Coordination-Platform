@@ -1,0 +1,21 @@
+.group-filters {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text-muted);
+}
+
+.gf-input {
+    padding: 4px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    background: var(--color-surface);
+    outline: none;
+    max-width: 120px;
+}
+
+.gf-input:focus {
+    border-color: var(--color-primary);
+}

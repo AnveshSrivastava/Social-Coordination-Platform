@@ -1,0 +1,41 @@
+.login-modal {
+    text-align: center;
+}
+
+.login-subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-6);
+    line-height: var(--line-height-relaxed);
+}
+
+.login-fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+    text-align: left;
+}
+
+.login-error {
+    font-size: var(--font-size-sm);
+    color: var(--color-danger);
+    margin-bottom: var(--space-4);
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-danger-bg);
+    border-radius: var(--radius-md);
+}
+
+.login-back {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: var(--space-4);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    transition: color var(--transition-fast);
+}
+
+.login-back:hover {
+    color: var(--color-primary);
+}
