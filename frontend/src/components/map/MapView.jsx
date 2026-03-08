@@ -56,14 +56,26 @@ function SearchResultHandler({ searchResult }) {
     return null;
 }
 
-/* ─── Inner component: fetch on map move ─── */
+/* ─── Inner component: fetch on map move (debounced) ─── */
 function MapMoveHandler({ onMoveEnd }) {
+    const debounceRef = useRef(null);
     useMapEvents({
         moveend: (e) => {
             const center = e.target.getCenter();
-            onMoveEnd(center);
+            // Clear any pending debounce
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+            // Wait 2 seconds after last move before fetching
+            debounceRef.current = setTimeout(() => {
+                onMoveEnd(center);
+            }, 2000);
         },
     });
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+        };
+    }, []);
     return null;
 }
 

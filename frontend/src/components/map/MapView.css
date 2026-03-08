@@ -64,9 +64,9 @@
 /* ─── Uber-style Recenter Button ─── */
 .recenter-btn {
     position: absolute;
-    bottom: 24px;
-    right: 16px;
-    z-index: var(--z-dropdown);
+    bottom: 90px;
+    right: 26px;
+    z-index: 1000;
     width: 44px;
     height: 44px;
     background: var(--color-surface);

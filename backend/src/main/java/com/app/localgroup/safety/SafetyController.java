@@ -30,19 +30,29 @@ public class SafetyController {
     private final SafetyEventRepository safetyEventRepository;
 
     @PostMapping("/sos/{groupId}")
-    public ResponseEntity<ApiResponse<String>> sos(@PathVariable String groupId, Authentication auth) {
+    public ResponseEntity<ApiResponse<String>> sos(@PathVariable("groupId") String groupId, Authentication auth) {
         String userId = (String) auth.getPrincipal();
         Group g = groupRepository.findById(groupId).orElseThrow(() -> new RuntimeException("Group not found"));
-        if (g.getStatus() != Group.Status.ACTIVE) return ResponseEntity.status(409).body(ApiResponse.<String>builder().success(false).message("Group not active").build());
-        boolean member = groupMemberRepository.findByGroupId(groupId).stream().anyMatch(m -> m.getUserId().equals(userId));
-        if (!member) return ResponseEntity.status(403).body(ApiResponse.<String>builder().success(false).message("Not a member").build());
+        if (g.getStatus() != Group.Status.ACTIVE)
+            return ResponseEntity.status(409)
+                    .body(ApiResponse.<String>builder().success(false).message("Group not active").build());
+        boolean member = groupMemberRepository.findByGroupId(groupId).stream()
+                .anyMatch(m -> m.getUserId().equals(userId));
+        if (!member)
+            return ResponseEntity.status(403)
+                    .body(ApiResponse.<String>builder().success(false).message("Not a member").build());
 
-        SafetyEvent e = SafetyEvent.builder().groupId(groupId).triggeredBy(userId).status(SafetyEvent.Status.OPEN).build();
+        SafetyEvent e = SafetyEvent.builder().groupId(groupId).triggeredBy(userId).status(SafetyEvent.Status.OPEN)
+                .build();
         safetyEventRepository.save(e);
 
         // notify members (mocked via logs)
-        log.info("SOS triggered by {} in group {}. Notifying group members and trusted contact. NOTE: This is not an emergency service and does not contact authorities.", userId, groupId);
+        log.info(
+                "SOS triggered by {} in group {}. Notifying group members and trusted contact. NOTE: This is not an emergency service and does not contact authorities.",
+                userId, groupId);
 
-        return ResponseEntity.ok(ApiResponse.<String>builder().success(true).message("SOS triggered. This is not an emergency service and does not contact authorities.").data(e.getId()).build());
+        return ResponseEntity.ok(ApiResponse.<String>builder().success(true)
+                .message("SOS triggered. This is not an emergency service and does not contact authorities.")
+                .data(e.getId()).build());
     }
 }

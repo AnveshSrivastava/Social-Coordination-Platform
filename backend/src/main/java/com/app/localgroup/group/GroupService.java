@@ -152,6 +152,22 @@ public class GroupService {
                 .build();
     }
 
+    public List<GroupDto> getMyGroups(String userId) {
+        return groupMemberRepository.findByUserId(userId).stream()
+                .map(m -> groupRepository.findById(m.getGroupId()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(this::toDto)
+                .toList();
+    }
+
+    public List<GroupDto> getGroupsByPlace(String placeId) {
+        return groupRepository.findByPlaceId(placeId).stream()
+                .filter(g -> g.getVisibility() == Group.Visibility.PUBLIC && g.getStatus() == Group.Status.JOINABLE)
+                .map(this::toDto)
+                .toList();
+    }
+
     // helper exceptional classes
     public static class ResourceNotFoundException extends RuntimeException {
         public ResourceNotFoundException(String m) { super(m); }

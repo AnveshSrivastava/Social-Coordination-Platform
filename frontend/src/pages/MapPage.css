@@ -51,7 +51,7 @@
     align-items: center;
     justify-content: center;
     box-shadow: var(--shadow-xl);
-    z-index: var(--z-sticky);
+    z-index: 1000;
     transition: all var(--transition-fast);
 }
 

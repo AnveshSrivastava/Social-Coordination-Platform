@@ -19,9 +19,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-                                                                  HttpHeaders headers,
-                                                                  HttpStatusCode status,
-                                                                  WebRequest request) {
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
         Map<String, String> errors = new HashMap<>();
         for (FieldError err : ex.getBindingResult().getFieldErrors()) {
             errors.put(err.getField(), err.getDefaultMessage());
@@ -30,6 +30,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .success(false)
                 .message("Validation failed")
                 .data(errors)
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
+    }
+
+    @ExceptionHandler({ IllegalStateException.class, IllegalArgumentException.class })
+    public ResponseEntity<ApiResponse<String>> handleBadRequest(RuntimeException ex) {
+        ApiResponse<String> resp = ApiResponse.<String>builder()
+                .success(false)
+                .message(ex.getMessage())
                 .build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
     }

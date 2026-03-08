@@ -1,4 +1,5 @@
-import { Users, Clock, CalendarDays } from 'lucide-react';
+import { useState } from 'react';
+import { Users, Clock, CalendarDays, Check } from 'lucide-react';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
 import { useAuth } from '../../context/AuthContext';
@@ -14,9 +15,12 @@ const STATUS_MAP = {
     CREATED: { label: 'New', variant: 'primary' },
 };
 
-export default function GroupCard({ group, onLoginRequired, compact = false }) {
+export default function GroupCard({ group, onLoginRequired, compact = false, onGroupChange, isJoined = false }) {
     const { isAuthenticated } = useAuth();
     const toast = useToast();
+    const [joining, setJoining] = useState(false);
+    const [localJoined, setLocalJoined] = useState(isJoined);
+    const [localMemberCount, setLocalMemberCount] = useState(group.memberCount || 1);
 
     const status = STATUS_MAP[group.status] || STATUS_MAP.CREATED;
     const dateStr = group.dateTime
@@ -26,15 +30,26 @@ export default function GroupCard({ group, onLoginRequired, compact = false }) {
         : 'TBD';
 
     const handleJoin = async () => {
-        if (!isAuthenticated) {
+        // Pre-flight auth check — prevent 400/401 by showing login modal
+        if (!isAuthenticated || !localStorage.getItem('jwt_token')) {
             onLoginRequired?.();
             return;
         }
+        setJoining(true);
         try {
             await groupService.join(group.id);
+            // Optimistic UI update
+            setLocalJoined(true);
+            setLocalMemberCount((c) => c + 1);
             toast.success('Joined group successfully!');
+            onGroupChange?.();
         } catch (err) {
-            toast.error(err.message || 'Failed to join group');
+            const msg = err.status === 400
+                ? 'Could not join — you may already be a member or the group is full.'
+                : (err.message || 'Failed to join group');
+            toast.error(msg);
+        } finally {
+            setJoining(false);
         }
     };
 
@@ -42,10 +57,13 @@ export default function GroupCard({ group, onLoginRequired, compact = false }) {
         try {
             await groupService.confirm(group.id);
             toast.success('Attendance confirmed!');
+            onGroupChange?.();
         } catch (err) {
             toast.error(err.message || 'Failed to confirm');
         }
     };
+
+    const isAlreadyJoined = localJoined || isJoined;
 
     return (
         <div className={`group-card ${compact ? 'group-card--compact' : ''}`}>
@@ -62,12 +80,19 @@ export default function GroupCard({ group, onLoginRequired, compact = false }) {
                 </div>
                 <div className="group-card-detail">
                     <Users size={14} />
-                    <span>{group.memberCount || 1}/{group.maxSize} members</span>
+                    <span>{localMemberCount}/{group.maxSize} members</span>
                 </div>
             </div>
             <div className="group-card-actions">
-                {group.status === 'JOINABLE' && (
-                    <Button size="sm" onClick={handleJoin}>Join Group</Button>
+                {group.status === 'JOINABLE' && !isAlreadyJoined && (
+                    <Button size="sm" onClick={handleJoin} loading={joining} disabled={joining}>
+                        Join Group
+                    </Button>
+                )}
+                {group.status === 'JOINABLE' && isAlreadyJoined && (
+                    <Badge variant="success" size="md">
+                        <Check size={14} style={{ marginRight: 4 }} /> Joined
+                    </Badge>
                 )}
                 {group.status === 'CONFIRMATION' && (
                     <Button size="sm" variant="secondary" onClick={handleConfirm}>Confirm</Button>

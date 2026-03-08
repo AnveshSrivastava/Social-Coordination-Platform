@@ -31,4 +31,12 @@ export const groupService = {
             method: 'POST',
         });
     },
+
+    async getMyGroups() {
+        return apiClient('/groups/me');
+    },
+
+    async getGroupsByPlace(placeId) {
+        return apiClient(`/groups/place/${encodeURIComponent(placeId)}`);
+    },
 };

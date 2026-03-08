@@ -15,9 +15,13 @@ export async function apiClient(endpoint, options = {}) {
   const token = localStorage.getItem('jwt_token');
 
   const headers = {
-    'Content-Type': 'application/json',
     ...options.headers,
   };
+
+  // Only set Content-Type for requests that have a body
+  if (options.body) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;

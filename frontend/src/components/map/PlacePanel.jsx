@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, MapPin, Users, Clock, Plus, Lock } from 'lucide-react';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
@@ -8,6 +8,7 @@ import CreateGroupForm from '../group/CreateGroupForm';
 import JoinPrivateForm from '../group/JoinPrivateForm';
 import { useAuth } from '../../context/AuthContext';
 import { placeService } from '../../services/placeService';
+import { groupService } from '../../services/groupService';
 import './PlacePanel.css';
 
 const CATEGORY_LABELS = {
@@ -17,24 +18,46 @@ const CATEGORY_LABELS = {
     CAMPUS: { label: 'Campus', variant: 'activity' },
 };
 
-export default function PlacePanel({ place, onClose, onLoginRequired }) {
+export default function PlacePanel({ place, onClose, onLoginRequired, onGroupChange, myGroups = [] }) {
     const { isAuthenticated } = useAuth();
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [showJoinPrivate, setShowJoinPrivate] = useState(false);
     const [groups, setGroups] = useState([]);
     const [filteredGroups, setFilteredGroups] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
 
-    /* In a real app, we'd fetch groups for this place from the backend.
-       Since there's no direct "GET /groups?placeId=X" endpoint, this is a placeholder.
-       The place panel shows the place info and group interaction UI. */
-    useEffect(() => {
-        if (place) {
-            // Mock groups for display - in production these would come from a backend endpoint
-            setGroups([]);
-            setFilteredGroups([]);
+    const fetchPlaceGroups = useCallback(async () => {
+        if (!place) return;
+        setLoading(true);
+        try {
+            const placeId = place.id || place.externalPlaceId;
+            if (placeId) {
+                const res = await groupService.getGroupsByPlace(placeId);
+                if (res?.data) {
+                    setGroups(res.data);
+                }
+            }
+        } catch (err) {
+            console.error('Failed to fetch place groups', err);
+        } finally {
+            setLoading(false);
         }
     }, [place]);
+
+    useEffect(() => {
+        if (place) {
+            setGroups([]);
+            setFilteredGroups([]);
+            fetchPlaceGroups();
+        }
+    }, [place, refreshKey, fetchPlaceGroups]);
+
+    // Force a refresh of groups data
+    const triggerRefresh = useCallback(() => {
+        setRefreshKey((k) => k + 1);
+        if (onGroupChange) onGroupChange();
+    }, [onGroupChange]);
 
     if (!place) return null;
 
@@ -48,6 +71,9 @@ export default function PlacePanel({ place, onClose, onLoginRequired }) {
         if (action === 'create') setShowCreateForm(true);
         if (action === 'joinPrivate') setShowJoinPrivate(true);
     };
+
+    // Build a set of joined group IDs for quick lookup
+    const joinedGroupIds = new Set(myGroups.map((g) => g.id));
 
     return (
         <div className="place-panel animate-slide-up">
@@ -89,7 +115,13 @@ export default function PlacePanel({ place, onClose, onLoginRequired }) {
                 </Button>
             </div>
 
-            {groups.length > 0 && (
+            {loading && (
+                <div className="place-panel-loading">
+                    <span>Loading groups…</span>
+                </div>
+            )}
+
+            {!loading && groups.length > 0 && (
                 <>
                     <div className="place-panel-section-title">
                         <h4>Public Groups</h4>
@@ -97,13 +129,19 @@ export default function PlacePanel({ place, onClose, onLoginRequired }) {
                     </div>
                     <div className="place-panel-groups">
                         {(filteredGroups.length > 0 ? filteredGroups : groups).map((g) => (
-                            <GroupCard key={g.id} group={g} onLoginRequired={onLoginRequired} />
+                            <GroupCard
+                                key={g.id}
+                                group={g}
+                                onLoginRequired={onLoginRequired}
+                                isJoined={joinedGroupIds.has(g.id)}
+                                onGroupChange={triggerRefresh}
+                            />
                         ))}
                     </div>
                 </>
             )}
 
-            {groups.length === 0 && (
+            {!loading && groups.length === 0 && (
                 <div className="place-panel-empty">
                     <MapPin size={24} />
                     <p>No public groups here yet. Be the first to create one!</p>
@@ -114,14 +152,20 @@ export default function PlacePanel({ place, onClose, onLoginRequired }) {
                 <CreateGroupForm
                     place={place}
                     isOpen={showCreateForm}
-                    onClose={() => setShowCreateForm(false)}
+                    onClose={() => {
+                        setShowCreateForm(false);
+                        triggerRefresh();
+                    }}
                 />
             )}
 
             {showJoinPrivate && (
                 <JoinPrivateForm
                     isOpen={showJoinPrivate}
-                    onClose={() => setShowJoinPrivate(false)}
+                    onClose={() => {
+                        setShowJoinPrivate(false);
+                        triggerRefresh();
+                    }}
                 />
             )}
         </div>

@@ -10,4 +10,5 @@ import java.util.List;
 public interface GroupRepository extends MongoRepository<Group, String> {
     List<Group> findByCreatorIdAndStatusNot(String creatorId, Group.Status status);
     long countByCreatorIdAndStatusNot(String creatorId, Group.Status status);
+    List<Group> findByPlaceId(String placeId);
 }

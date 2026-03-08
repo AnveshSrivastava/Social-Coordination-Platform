@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Users } from 'lucide-react';
 import MapView from '../components/map/MapView';
 import SearchBar from '../components/map/SearchBar';
@@ -10,6 +10,7 @@ import ConfirmBanner from '../components/group/ConfirmBanner';
 import ChatPanel from '../components/chat/ChatPanel';
 import SOSButton from '../components/safety/SOSButton';
 import { useAuth } from '../context/AuthContext';
+import { groupService } from '../services/groupService';
 import './MapPage.css';
 
 export default function MapPage() {
@@ -22,8 +23,23 @@ export default function MapPage() {
     const [chatGroup, setChatGroup] = useState(null);
     const [searchResult, setSearchResult] = useState(null);
 
-    // Placeholder groups (would come from user's actual groups in production)
-    const [myGroups] = useState([]);
+    const [myGroups, setMyGroups] = useState([]);
+
+    const fetchMyGroups = async () => {
+        if (!isAuthenticated) return;
+        try {
+            const res = await groupService.getMyGroups();
+            if (res?.data) {
+                setMyGroups(res.data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch my groups', err);
+        }
+    };
+
+    useEffect(() => {
+        fetchMyGroups();
+    }, [isAuthenticated]);
 
     // Check for groups needing confirmation
     const confirmGroup = myGroups.find((g) => g.status === 'CONFIRMATION');
@@ -70,6 +86,8 @@ export default function MapPage() {
                     place={selectedPlace}
                     onClose={() => setSelectedPlace(null)}
                     onLoginRequired={() => setShowLogin(true)}
+                    onGroupChange={fetchMyGroups}
+                    myGroups={myGroups}
                 />
             )}
 

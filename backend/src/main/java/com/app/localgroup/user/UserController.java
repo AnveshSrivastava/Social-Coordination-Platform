@@ -26,19 +26,25 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserProfileDto>> me(Authentication auth) {
         Optional<UserProfileDto> dto = userService.getCurrentUser(auth);
-        return dto.map(d -> ResponseEntity.ok(ApiResponse.<UserProfileDto>builder().success(true).data(d).message("OK").build()))
-                .orElseGet(() -> ResponseEntity.status(404).body(ApiResponse.<UserProfileDto>builder().success(false).message("User not found").build()));
+        return dto
+                .map(d -> ResponseEntity
+                        .ok(ApiResponse.<UserProfileDto>builder().success(true).data(d).message("OK").build()))
+                .orElseGet(() -> ResponseEntity.status(404)
+                        .body(ApiResponse.<UserProfileDto>builder().success(false).message("User not found").build()));
     }
 
     @GetMapping("/trust-score")
     public ResponseEntity<ApiResponse<Integer>> trustScore(Authentication auth) {
         Optional<Integer> score = userService.getTrustScore(auth);
-        return score.map(s -> ResponseEntity.ok(ApiResponse.<Integer>builder().success(true).data(s).message("OK").build()))
-                .orElseGet(() -> ResponseEntity.status(404).body(ApiResponse.<Integer>builder().success(false).message("User not found").build()));
+        return score
+                .map(s -> ResponseEntity.ok(ApiResponse.<Integer>builder().success(true).data(s).message("OK").build()))
+                .orElseGet(() -> ResponseEntity.status(404)
+                        .body(ApiResponse.<Integer>builder().success(false).message("User not found").build()));
     }
 
     @PostMapping("/block/{userId}")
-    public ResponseEntity<ApiResponse<String>> block(@PathVariable @NotBlank String userId, Authentication auth) {
+    public ResponseEntity<ApiResponse<String>> block(@PathVariable("userId") @NotBlank String userId,
+            Authentication auth) {
         userService.blockUser(auth, userId);
         return ResponseEntity.ok(ApiResponse.<String>builder().success(true).message("User blocked").build());
     }

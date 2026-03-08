@@ -25,24 +25,27 @@ public class PlaceController {
     private final PlaceService placeService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PlaceDto>>> list(@RequestParam(name = "category", required = false) Optional<Place.Category> category) {
+    public ResponseEntity<ApiResponse<List<PlaceDto>>> list(
+            @RequestParam(name = "category", required = false) Optional<Place.Category> category) {
         List<Place> places = placeService.findAll(category);
         List<PlaceDto> dtos = places.stream().map(placeService::toDto).toList();
         return ResponseEntity.ok(ApiResponse.<List<PlaceDto>>builder().success(true).data(dtos).message("OK").build());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<PlaceDto>> get(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<PlaceDto>> get(@PathVariable("id") String id) {
         return placeService.findById(id)
-            .map(placeService::toDto)
-            .map(d -> ResponseEntity.ok(ApiResponse.<PlaceDto>builder().success(true).data(d).message("OK").build()))
-            .orElseGet(() -> ResponseEntity.status(404).body(ApiResponse.<PlaceDto>builder().success(false).message("Place not found").build()));
+                .map(placeService::toDto)
+                .map(d -> ResponseEntity
+                        .ok(ApiResponse.<PlaceDto>builder().success(true).data(d).message("OK").build()))
+                .orElseGet(() -> ResponseEntity.status(404)
+                        .body(ApiResponse.<PlaceDto>builder().success(false).message("Place not found").build()));
     }
 
     @GetMapping("/nearby")
-    public ResponseEntity<ApiResponse<List<PlaceDto>>> nearby(@RequestParam @NotNull double lat,
-                                                           @RequestParam @NotNull double lng,
-                                                           @RequestParam(name = "radius", defaultValue = "1000") double radius) {
+    public ResponseEntity<ApiResponse<List<PlaceDto>>> nearby(@RequestParam("lat") @NotNull double lat,
+            @RequestParam("lng") @NotNull double lng,
+            @RequestParam(name = "radius", defaultValue = "1000") double radius) {
         List<Place> places = placeService.findNearby(lat, lng, radius);
         List<PlaceDto> dtos = places.stream().map(placeService::toDto).toList();
         return ResponseEntity.ok(ApiResponse.<List<PlaceDto>>builder().success(true).data(dtos).message("OK").build());

@@ -5,12 +5,15 @@ import Navbar from '../components/layout/Navbar';
 import Badge from '../components/ui/Badge';
 import { useAuth } from '../context/AuthContext';
 import { userService } from '../services/userService';
+import { groupService } from '../services/groupService';
+import GroupCard from '../components/group/GroupCard';
 import './ProfilePage.css';
 
 export default function ProfilePage() {
     const { user, isAuthenticated } = useAuth();
     const navigate = useNavigate();
     const [trustScore, setTrustScore] = useState(null);
+    const [myGroups, setMyGroups] = useState([]);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -25,7 +28,16 @@ export default function ProfilePage() {
                 console.error('Failed to fetch trust score:', err);
             }
         };
+        const fetchMyGroups = async () => {
+            try {
+                const res = await groupService.getMyGroups();
+                if (res?.data) setMyGroups(res.data);
+            } catch (err) {
+                console.error('Failed to fetch groups:', err);
+            }
+        };
         fetchTrustScore();
+        fetchMyGroups();
     }, [isAuthenticated, navigate]);
 
     if (!user) return null;
@@ -92,11 +104,29 @@ export default function ProfilePage() {
                 <div className="profile-section animate-fade-in-up">
                     <h3>
                         <CalendarDays size={18} />
-                        Scheduled Groups
+                        Joined Groups
                     </h3>
-                    <div className="profile-empty">
-                        <p>No scheduled groups. Explore the map to find one!</p>
-                    </div>
+                    {myGroups.length > 0 ? (
+                        <div className="profile-groups-list" style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {myGroups.map(group => (
+                                <GroupCard
+                                    key={group.id}
+                                    group={group}
+                                    compact={true}
+                                    onGroupChange={() => {
+                                        // Refetch groups if they join/confirm
+                                        groupService.getMyGroups().then(res => {
+                                            if (res?.data) setMyGroups(res.data);
+                                        });
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="profile-empty">
+                            <p>No joined groups. Explore the map to find one!</p>
+                        </div>
+                    )}
                 </div>
 
                 {/* Past Places */}
