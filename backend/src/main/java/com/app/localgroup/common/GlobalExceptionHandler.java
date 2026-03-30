@@ -1,5 +1,7 @@
 package com.app.localgroup.common;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.HttpStatus;
@@ -10,12 +12,15 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import com.app.localgroup.auth.exception.UnauthorizedException;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
@@ -34,8 +39,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
     }
 
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiResponse<String>> handleUnauthorized(UnauthorizedException ex) {
+        log.warn("Unauthorized access attempt: {}", ex.getMessage());
+        ApiResponse<String> resp = ApiResponse.<String>builder()
+                .success(false)
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(resp);
+    }
+
     @ExceptionHandler({ IllegalStateException.class, IllegalArgumentException.class })
     public ResponseEntity<ApiResponse<String>> handleBadRequest(RuntimeException ex) {
+        log.warn("Bad request: {}", ex.getMessage());
         ApiResponse<String> resp = ApiResponse.<String>builder()
                 .success(false)
                 .message(ex.getMessage())
@@ -45,6 +61,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<String>> handleAll(Exception ex) {
+        log.error("Unexpected error: ", ex);
         ApiResponse<String> resp = ApiResponse.<String>builder()
                 .success(false)
                 .message("Internal server error")

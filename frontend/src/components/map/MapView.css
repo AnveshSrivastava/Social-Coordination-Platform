@@ -10,6 +10,24 @@
     z-index: var(--z-base);
 }
 
+/* Make default Leaflet controls sit underneath search box for mobile */
+.leaflet-top .leaflet-control-zoom,
+.leaflet-top .leaflet-control-attribution {
+    top: clamp(112px, 8vw, 140px) !important;
+}
+
+.leaflet-left .leaflet-control-zoom {
+    left: 8px !important;
+}
+
+.leaflet-control-zoom a,
+.leaflet-control-zoom a:hover {
+    background: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border) !important;
+    box-shadow: var(--shadow-lg) !important;
+}
+
 /* ─── User position marker ─── */
 .user-pin {
     position: relative;

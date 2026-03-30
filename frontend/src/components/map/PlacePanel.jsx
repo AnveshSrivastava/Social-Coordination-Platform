@@ -7,7 +7,6 @@ import GroupFilters from '../group/GroupFilters';
 import CreateGroupForm from '../group/CreateGroupForm';
 import JoinPrivateForm from '../group/JoinPrivateForm';
 import { useAuth } from '../../context/AuthContext';
-import { placeService } from '../../services/placeService';
 import { groupService } from '../../services/groupService';
 import './PlacePanel.css';
 
@@ -72,6 +71,25 @@ export default function PlacePanel({ place, onClose, onLoginRequired, onGroupCha
         if (action === 'joinPrivate') setShowJoinPrivate(true);
     };
 
+    const handleExplore = () => {
+        let url;
+
+        if (place.name) {
+            url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}`;
+        } else {
+            const lat = place.latitude || place.coordinates?.[1];
+            const lng = place.longitude || place.coordinates?.[0];
+            if (lat && lng) {
+                url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${lat},${lng}`)}`;
+            } else {
+                // Fallback to a generic search if no data
+                url = 'https://www.google.com/maps';
+            }
+        }
+
+        window.open(url, '_blank', 'noopener,noreferrer');
+    };
+
     // Build a set of joined group IDs for quick lookup
     const joinedGroupIds = new Set(myGroups.map((g) => g.id));
 
@@ -112,6 +130,14 @@ export default function PlacePanel({ place, onClose, onLoginRequired, onGroupCha
                     icon={<Lock size={16} />}
                 >
                     Join Private
+                </Button>
+                <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleExplore}
+                    icon={<MapPin size={16} />}
+                >
+                    Explore this place
                 </Button>
             </div>
 

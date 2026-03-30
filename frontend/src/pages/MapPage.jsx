@@ -22,6 +22,7 @@ export default function MapPage() {
     const [showMyGroups, setShowMyGroups] = useState(false);
     const [chatGroup, setChatGroup] = useState(null);
     const [searchResult, setSearchResult] = useState(null);
+    const [userLocation, setUserLocation] = useState(null);
 
     const [myGroups, setMyGroups] = useState([]);
 
@@ -65,9 +66,10 @@ export default function MapPage() {
                     setPlaces={setPlaces}
                     setLoading={setLoading}
                     searchResult={searchResult}
+                    onUserLocationChange={setUserLocation}
                 />
 
-                <SearchBar onSearch={handleSearch} />
+                <SearchBar onSearch={handleSearch} userLocation={userLocation} />
 
                 {loading && (
                     <div className="map-loading">

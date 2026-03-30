@@ -9,5 +9,5 @@ server:
 
 app:
   jwt:
-    secret: replace_this_jwt_secret_for_dev_only
+    secret: ThisIsADevelopmentSecretKeyFor256BitHS256SigningAlgorithm
     expiration-ms: 3600000

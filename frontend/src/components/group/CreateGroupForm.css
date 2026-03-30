@@ -55,12 +55,19 @@
 .cgf-size-btn:hover {
     border-color: var(--color-primary);
     color: var(--color-primary);
+    background: var(--color-surface-hover);
 }
 
 .cgf-size-btn--active {
     background: var(--color-primary);
     border-color: var(--color-primary);
     color: white;
+}
+
+.cgf-size-btn--active:hover {
+    background: var(--color-primary-hover);
+    color: white;
+    border-color: var(--color-primary);
 }
 
 .cgf-vis-selector {
