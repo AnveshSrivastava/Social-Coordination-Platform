@@ -25,6 +25,7 @@ export default function MapPage() {
     const [userLocation, setUserLocation] = useState(null);
 
     const [myGroups, setMyGroups] = useState([]);
+    const [placeFilter, setPlaceFilter] = useState('ALL');
 
     const fetchMyGroups = async () => {
         if (!isAuthenticated) return;
@@ -39,11 +40,12 @@ export default function MapPage() {
     };
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchMyGroups();
     }, [isAuthenticated]);
 
     // Check for groups needing confirmation
-    const confirmGroup = myGroups.find((g) => g.status === 'CONFIRMATION');
+    const confirmGroup = myGroups.find((g) => g.status === 'CONFIRMATION' && !g.confirmed);
     // Check for active group (for SOS)
     const activeGroup = myGroups.find((g) => g.status === 'ACTIVE');
 
@@ -67,9 +69,15 @@ export default function MapPage() {
                     setLoading={setLoading}
                     searchResult={searchResult}
                     onUserLocationChange={setUserLocation}
+                    placeFilter={placeFilter}
                 />
 
-                <SearchBar onSearch={handleSearch} userLocation={userLocation} />
+                <SearchBar
+                    onSearch={handleSearch}
+                    userLocation={userLocation}
+                    placeFilter={placeFilter}
+                    onFilterChange={setPlaceFilter}
+                />
 
                 {loading && (
                     <div className="map-loading">
@@ -80,7 +88,7 @@ export default function MapPage() {
             </div>
 
             {/* Confirmation Banner */}
-            {confirmGroup && <ConfirmBanner group={confirmGroup} />}
+            {confirmGroup && <ConfirmBanner group={confirmGroup} onConfirmed={() => fetchMyGroups()} />}
 
             {/* Place Panel */}
             {selectedPlace && (
@@ -114,7 +122,7 @@ export default function MapPage() {
 
             {/* Chat Panel */}
             <ChatPanel
-                group={chatGroup}
+                group={!chatGroup}
                 isOpen={!!chatGroup}
                 onClose={() => setChatGroup(null)}
             />

@@ -113,6 +113,7 @@ export default function ProfilePage() {
                                     key={group.id}
                                     group={group}
                                     compact={true}
+                                    isJoined={true}
                                     onGroupChange={() => {
                                         // Refetch groups if they join/confirm
                                         groupService.getMyGroups().then(res => {

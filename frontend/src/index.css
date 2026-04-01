@@ -47,6 +47,22 @@
   --color-activity: #065F46;
   --color-activity-bg: #D1FAE5;
 
+  /* New categories */
+  --color-mall: #1D4ED8;
+  --color-mall-bg: #DBEAFE;
+  --color-cinema: #6D28D9;
+  --color-cinema-bg: #EDE9FE;
+  --color-bowling: #BE185D;
+  --color-bowling-bg: #FCE7F3;
+  --color-bar: #D97706;
+  --color-bar-bg: #FEF3C7;
+  --color-nightclub: #9333EA;
+  --color-nightclub-bg: #F5F3FF;
+  --color-amusement: #0891B2;
+  --color-amusement-bg: #E0F2FE;
+  --color-worship: #1E40AF;
+  --color-worship-bg: #E0E7FF;
+
   /* Typography */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-size-xs: 0.75rem;
@@ -483,7 +499,7 @@ ol {
   transform: rotate(-45deg);
   box-shadow: var(--shadow-md);
   transition: transform var(--transition-spring);
-  animation: pinDrop 0.6s ease-out;
+  animation: none; /* remove bounce-on-load */
 }
 
 .map-pin:hover {
@@ -509,6 +525,41 @@ ol {
 .map-pin--activity {
   background: var(--color-activity-bg);
   border: 2px solid var(--color-activity);
+}
+
+.map-pin--mall {
+  background: var(--color-mall-bg);
+  border: 2px solid var(--color-mall);
+}
+
+.map-pin--cinema {
+  background: var(--color-cinema-bg);
+  border: 2px solid var(--color-cinema);
+}
+
+.map-pin--bowling {
+  background: var(--color-bowling-bg);
+  border: 2px solid var(--color-bowling);
+}
+
+.map-pin--bar {
+  background: var(--color-bar-bg);
+  border: 2px solid var(--color-bar);
+}
+
+.map-pin--nightclub {
+  background: var(--color-nightclub-bg);
+  border: 2px solid var(--color-nightclub);
+}
+
+.map-pin--amusement {
+  background: var(--color-amusement-bg);
+  border: 2px solid var(--color-amusement);
+}
+
+.map-pin--worship {
+  background: var(--color-worship-bg);
+  border: 2px solid var(--color-worship);
 }
 
 /* ---------- Skeleton Loading ---------- */

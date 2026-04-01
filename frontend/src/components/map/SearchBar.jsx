@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Search, MapPin, Loader2 } from 'lucide-react';
 import './SearchBar.css';
 
-export default function SearchBar({ onSearch, userLocation }) {
+export default function SearchBar({ onSearch, userLocation, placeFilter, onFilterChange }) {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
     const [searching, setSearching] = useState(false);
@@ -135,6 +135,23 @@ export default function SearchBar({ onSearch, userLocation }) {
                     onFocus={() => results.length > 0 && setShowResults(true)}
                     onBlur={() => setTimeout(() => setShowResults(false), 200)}
                 />
+                <select
+                    className="search-filter"
+                    value={placeFilter}
+                    onChange={(e) => onFilterChange?.(e.target.value)}
+                >
+                    <option value="ALL">All</option>
+                    <option value="CAFE">Café</option>
+                    <option value="RESTAURANT">Restaurant</option>
+                    <option value="MALL">Mall</option>
+                    <option value="CINEMA">Cinema</option>
+                    <option value="BOWLING_ALLEY">Bowling</option>
+                    <option value="BAR">Bar</option>
+                    <option value="NIGHTCLUB">Nightclub</option>
+                    <option value="AMUSEMENT_PARK">Amusement Park</option>
+                    <option value="PLACE_OF_WORSHIP">Place of Worship</option>
+                    <option value="PARK">Park</option>
+                </select>
                 {searching && <Loader2 size={18} className="search-spinner" />}
             </div>
 

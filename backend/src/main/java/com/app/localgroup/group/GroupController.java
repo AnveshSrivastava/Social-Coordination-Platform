@@ -52,10 +52,11 @@ public class GroupController {
     }
 
     @PostMapping("/{groupId}/confirm")
-    public ResponseEntity<ApiResponse<String>> confirm(@PathVariable("groupId") String groupId, Authentication auth) {
+    public ResponseEntity<ApiResponse<GroupDto>> confirm(@PathVariable("groupId") String groupId, Authentication auth) {
         String userId = (String) auth.getPrincipal();
         groupService.confirmAttendance(userId, groupId);
-        return ResponseEntity.ok(ApiResponse.<String>builder().success(true).message("Attendance confirmed").build());
+        GroupDto updated = groupService.getGroupById(groupId, userId);
+        return ResponseEntity.ok(ApiResponse.<GroupDto>builder().success(true).data(updated).message("Attendance confirmed").build());
     }
 
     @GetMapping("/me")

@@ -11,10 +11,16 @@ const DEFAULT_ZOOM = 15;
 const CATEGORY_CONFIG = {
     CAFE: { emoji: '☕', cssClass: 'cafe', label: 'Café' },
     RESTAURANT: { emoji: '🍽️', cssClass: 'restaurant', label: 'Restaurant' },
+    MALL: { emoji: '🛍️', cssClass: 'mall', label: 'Mall' },
+    CINEMA: { emoji: '🎬', cssClass: 'cinema', label: 'Cinema' },
+    BOWLING_ALLEY: { emoji: '🎳', cssClass: 'bowling', label: 'Bowling Alley' },
+    BAR: { emoji: '🍸', cssClass: 'bar', label: 'Bar' },
+    NIGHTCLUB: { emoji: '🕺', cssClass: 'nightclub', label: 'Nightclub' },
+    AMUSEMENT_PARK: { emoji: '🎡', cssClass: 'amusement', label: 'Amusement Park' },
+    PLACE_OF_WORSHIP: { emoji: '🛕', cssClass: 'worship', label: 'Place of Worship' },
+    PARK: { emoji: '🌳', cssClass: 'park', label: 'Park' },
+    TOURIST: { emoji: '📸', cssClass: 'tourist', label: 'Tourist Spot' },
     ACTIVITY: { emoji: '🎯', cssClass: 'activity', label: 'Activity' },
-    CAMPUS: { emoji: '🏫', cssClass: 'activity', label: 'Campus' },
-    PARK: { emoji: '🌳', cssClass: 'activity', label: 'Park' },
-    TOURIST: { emoji: '📸', cssClass: 'activity', label: 'Tourist Spot' },
 };
 
 function createPinIcon(category) {
@@ -64,13 +70,21 @@ function MapMoveHandler({ onMoveEnd }) {
     const debounceRef = useRef(null);
     useMapEvents({
         moveend: (e) => {
-            const center = e.target.getCenter();
+            const map = e.target;
+            const center = map.getCenter();
+            const zoom = map.getZoom();
+
+            // skip huge viewport queries at low zoom level to avoid Overpass 504
+            if (zoom < 11) {
+                return;
+            }
+
             // Clear any pending debounce
             if (debounceRef.current) clearTimeout(debounceRef.current);
-            // Wait 2 seconds after last move before fetching
+            // Wait 1.2 seconds after last move before fetching
             debounceRef.current = setTimeout(() => {
                 onMoveEnd(center);
-            }, 2000);
+            }, 1200);
         },
     });
     // Cleanup on unmount
@@ -177,15 +191,19 @@ async function fetchWithRetry(url, options, maxRetries = 3, baseDelayMs = 1000) 
     }
 }
 
-async function fetchOverpassPlaces(lat, lng, radiusMeters = 1500) {
+async function fetchOverpassPlaces(lat, lng, radiusMeters = 1200) {
+    // Avoid too large area on each map move to prevent 504 gateway timeout.
     const query = `
-    [out:json][timeout:15];
+    [out:json][timeout:10];
     (
       node["amenity"~"cafe|restaurant|fast_food|bar|pub|ice_cream|cinema|bowling_alley|nightclub|place_of_worship"](around:${radiusMeters},${lat},${lng});
+      way["amenity"~"cafe|restaurant|fast_food|bar|pub|ice_cream|cinema|bowling_alley|nightclub|place_of_worship"](around:${radiusMeters},${lat},${lng});
       node["tourism"~"attraction|museum|theme_park|amusement_park"](around:${radiusMeters},${lat},${lng});
+      way["tourism"~"attraction|museum|theme_park|amusement_park"](around:${radiusMeters},${lat},${lng});
       node["shop"="mall"](around:${radiusMeters},${lat},${lng});
+      way["shop"="mall"](around:${radiusMeters},${lat},${lng});
     );
-    out body 80;
+    out center 80;
   `;
 
     try {
@@ -250,7 +268,7 @@ const ALLOWED_PLACE_CATEGORIES = new Set([
     'ACTIVITY',
 ]);
 
-export default function MapView({ onPlaceSelect, places, setPlaces, setLoading, searchResult, onUserLocationChange }) {
+export default function MapView({ onPlaceSelect, places, setPlaces, setLoading, searchResult, onUserLocationChange, placeFilter }) {
     const [userPos, setUserPos] = useState(null);
     const lastFetchRef = useRef(null);
     const fetchingRef = useRef(false);
@@ -360,12 +378,17 @@ export default function MapView({ onPlaceSelect, places, setPlaces, setLoading, 
                 )}
 
                 {/* Place markers */}
-                {places.map((place) => {
-                    const lat = place.latitude || place.coordinates?.[1];
-                    const lng = place.longitude || place.coordinates?.[0];
-                    if (!lat || !lng) return null;
-                    const catConfig = CATEGORY_CONFIG[place.category] || CATEGORY_CONFIG.ACTIVITY;
-                    return (
+                {places
+                    .filter((place) => {
+                        if (!placeFilter || placeFilter === 'ALL') return true;
+                        return place.category === placeFilter;
+                    })
+                    .map((place) => {
+                        const lat = place.latitude || place.coordinates?.[1];
+                        const lng = place.longitude || place.coordinates?.[0];
+                        if (!lat || !lng) return null;
+                        const catConfig = CATEGORY_CONFIG[place.category] || CATEGORY_CONFIG.ACTIVITY;
+                        return (
                         <Marker
                             key={place.id}
                             position={[lat, lng]}

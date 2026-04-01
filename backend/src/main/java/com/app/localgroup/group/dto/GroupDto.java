@@ -18,4 +18,5 @@ public class GroupDto {
     private Group.Status status;
     private Instant createdAt;
     private long memberCount;
+    private boolean confirmed;
 }

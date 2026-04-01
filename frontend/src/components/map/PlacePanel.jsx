@@ -13,6 +13,15 @@ import './PlacePanel.css';
 const CATEGORY_LABELS = {
     CAFE: { label: 'Café', variant: 'cafe' },
     RESTAURANT: { label: 'Restaurant', variant: 'restaurant' },
+    MALL: { label: 'Mall', variant: 'activity' },
+    CINEMA: { label: 'Cinema', variant: 'activity' },
+    BOWLING_ALLEY: { label: 'Bowling', variant: 'activity' },
+    BAR: { label: 'Bar', variant: 'activity' },
+    NIGHTCLUB: { label: 'Nightclub', variant: 'activity' },
+    AMUSEMENT_PARK: { label: 'Amusement', variant: 'activity' },
+    PLACE_OF_WORSHIP: { label: 'Place of Worship', variant: 'worship' },
+    TOURIST: { label: 'Tourist Spot', variant: 'tourist' },
+    PARK: { label: 'Park', variant: 'activity' },
     ACTIVITY: { label: 'Activity', variant: 'activity' },
     CAMPUS: { label: 'Campus', variant: 'activity' },
 };

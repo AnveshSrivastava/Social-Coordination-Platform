@@ -10,23 +10,35 @@ export default function ChatPanel({ group, isOpen, onClose }) {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [connected, setConnected] = useState(false);
+    const [error, setError] = useState(null);
     const messagesEndRef = useRef(null);
 
     useEffect(() => {
         if (!isOpen || !group) return;
 
         const connect = async () => {
+            setError(null);
             try {
                 const token = authService.getToken();
+                if (!token) throw new Error('Not authenticated');
+
                 if (!chatService.isConnected) {
                     await chatService.connect(token);
                 }
+
                 setConnected(true);
-                chatService.subscribe(group.id, (msg) => {
+
+                const subscription = chatService.subscribe(group.id, (msg) => {
                     setMessages((prev) => [...prev, msg]);
                 });
+
+                if (!subscription) {
+                    throw new Error('Chat subscription failed');
+                }
             } catch (err) {
                 console.error('Chat connect error:', err);
+                setError(err?.message || 'Chat connect failed');
+                setConnected(false);
             }
         };
 
@@ -34,6 +46,8 @@ export default function ChatPanel({ group, isOpen, onClose }) {
 
         return () => {
             chatService.unsubscribe(group.id);
+            setConnected(false);
+            setError(null);
         };
     }, [isOpen, group]);
 
@@ -43,19 +57,30 @@ export default function ChatPanel({ group, isOpen, onClose }) {
 
     const handleSend = (e) => {
         e.preventDefault();
-        if (!input.trim() || !connected) return;
-        chatService.sendMessage(group.id, input.trim());
-        // Optimistic local add
-        setMessages((prev) => [
-            ...prev,
-            {
-                senderId: user?.id,
-                senderEmail: user?.email,
-                content: input.trim(),
-                timestamp: new Date().toISOString(),
-            },
-        ]);
-        setInput('');
+        if (!input.trim()) return;
+        if (!connected) {
+            setError('Not connected to chat server');
+            return;
+        }
+
+        try {
+            chatService.sendMessage(group.id, input.trim());
+            // Optimistic local add
+            setMessages((prev) => [
+                ...prev,
+                {
+                    senderId: user?.id,
+                    senderEmail: user?.email,
+                    content: input.trim(),
+                    timestamp: new Date().toISOString(),
+                },
+            ]);
+            setInput('');
+            setError(null);
+        } catch (err) {
+            console.error('Chat send error:', err);
+            setError(err?.message || 'Failed to send');
+        }
     };
 
     if (!isOpen) return null;
@@ -94,6 +119,12 @@ export default function ChatPanel({ group, isOpen, onClose }) {
                 })}
                 <div ref={messagesEndRef} />
             </div>
+
+            {error && (
+                <div className="chat-error">
+                    <span>{error}</span>
+                </div>
+            )}
 
             <form className="chat-input-bar" onSubmit={handleSend}>
                 <input

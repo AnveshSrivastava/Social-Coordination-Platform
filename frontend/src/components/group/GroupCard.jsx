@@ -20,6 +20,7 @@ export default function GroupCard({ group, onLoginRequired, compact = false, onG
     const toast = useToast();
     const [joining, setJoining] = useState(false);
     const [localJoined, setLocalJoined] = useState(isJoined);
+    const [confirmed, setConfirmed] = useState(group.confirmed || false);
     const [localMemberCount, setLocalMemberCount] = useState(group.memberCount || 1);
 
     const status = STATUS_MAP[group.status] || STATUS_MAP.CREATED;
@@ -56,6 +57,8 @@ export default function GroupCard({ group, onLoginRequired, compact = false, onG
     const handleConfirm = async () => {
         try {
             await groupService.confirm(group.id);
+            setConfirmed(true);
+            window.dispatchEvent(new CustomEvent('group-confirmed', { detail: { groupId: group.id } }));
             toast.success('Attendance confirmed!');
             onGroupChange?.();
         } catch (err) {
@@ -63,7 +66,7 @@ export default function GroupCard({ group, onLoginRequired, compact = false, onG
         }
     };
 
-    const isAlreadyJoined = localJoined || isJoined;
+    const isAlreadyJoined = localJoined || isJoined || confirmed;
 
     return (
         <div className={`group-card ${compact ? 'group-card--compact' : ''}`}>
@@ -94,8 +97,13 @@ export default function GroupCard({ group, onLoginRequired, compact = false, onG
                         <Check size={14} style={{ marginRight: 4 }} /> Joined
                     </Badge>
                 )}
-                {group.status === 'CONFIRMATION' && (
+                {group.status === 'CONFIRMATION' && !confirmed && (
                     <Button size="sm" variant="secondary" onClick={handleConfirm}>Confirm</Button>
+                )}
+                {group.status === 'CONFIRMATION' && confirmed && (
+                    <Badge variant="success" size="md">
+                        <Check size={14} style={{ marginRight: 4 }} /> Confirmed
+                    </Badge>
                 )}
                 {group.status === 'ACTIVE' && (
                     <Badge variant="success" size="md">● Live</Badge>

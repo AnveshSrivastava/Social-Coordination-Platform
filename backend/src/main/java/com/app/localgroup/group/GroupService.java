@@ -129,16 +129,29 @@ public class GroupService {
 
     public void confirmAttendance(String userId, String groupId) {
         Group g = groupRepository.findById(groupId).orElseThrow(() -> new ResourceNotFoundException("Group not found"));
-        if (g.getStatus() != Group.Status.CONFIRMATION) throw new IllegalStateException("Confirmation not allowed in current state");
+        if (g.getStatus() != Group.Status.JOINABLE && g.getStatus() != Group.Status.CONFIRMATION && g.getStatus() != Group.Status.ACTIVE) {
+            throw new IllegalStateException("Confirmation not allowed in current state");
+        }
+
         List<GroupMember> members = groupMemberRepository.findByGroupId(groupId);
         GroupMember member = members.stream().filter(m -> m.getUserId().equals(userId)).findFirst().orElseThrow(() -> new IllegalStateException("Not a member"));
         if (member.isConfirmed()) return; // idempotent
+
         member.setConfirmed(true);
         groupMemberRepository.save(member);
     }
 
     public GroupDto toDto(Group g) {
+        return toDto(g, null);
+    }
+
+    public GroupDto toDto(Group g, String userId) {
         long memberCount = groupMemberRepository.findByGroupId(g.getId()).size();
+        boolean userConfirmed = false;
+        if (userId != null) {
+            userConfirmed = groupMemberRepository.findByGroupId(g.getId()).stream()
+                    .anyMatch(m -> m.getUserId().equals(userId) && m.isConfirmed());
+        }
         return GroupDto.builder()
                 .id(g.getId())
                 .placeId(g.getPlaceId())
@@ -149,6 +162,7 @@ public class GroupService {
                 .status(g.getStatus())
                 .createdAt(g.getCreatedAt())
                 .memberCount(memberCount)
+                .confirmed(userConfirmed)
                 .build();
     }
 
@@ -157,7 +171,7 @@ public class GroupService {
                 .map(m -> groupRepository.findById(m.getGroupId()))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(this::toDto)
+                .map(g -> toDto(g, userId))
                 .toList();
     }
 
@@ -166,6 +180,11 @@ public class GroupService {
                 .filter(g -> g.getVisibility() == Group.Visibility.PUBLIC && g.getStatus() == Group.Status.JOINABLE)
                 .map(this::toDto)
                 .toList();
+    }
+
+    public GroupDto getGroupById(String groupId, String userId) {
+        Group g = groupRepository.findById(groupId).orElseThrow(() -> new ResourceNotFoundException("Group not found"));
+        return toDto(g, userId);
     }
 
     // helper exceptional classes

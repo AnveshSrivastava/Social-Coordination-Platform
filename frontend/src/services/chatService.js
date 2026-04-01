@@ -12,7 +12,10 @@ class ChatService {
     connect(token) {
         return new Promise((resolve, reject) => {
             this.client = new Client({
-                webSocketFactory: () => new SockJS(`${WS_URL}?token=${token}`),
+                webSocketFactory: () => new SockJS(WS_URL),
+                connectHeaders: {
+                    Authorization: `Bearer ${token}`,
+                },
                 reconnectDelay: 5000,
                 heartbeatIncoming: 10000,
                 heartbeatOutgoing: 10000,
@@ -23,6 +26,10 @@ class ChatService {
                 onStompError: (frame) => {
                     console.error('[Chat] STOMP error:', frame);
                     reject(new Error(frame.body));
+                },
+                onWebSocketError: (event) => {
+                    console.error('[Chat] WebSocket error:', event);
+                    reject(new Error('WebSocket error'));
                 },
                 onDisconnect: () => {
                     console.log('[Chat] Disconnected');
@@ -38,7 +45,7 @@ class ChatService {
             return null;
         }
 
-        const sub = this.client.subscribe(`/topic/chat/${groupId}`, (message) => {
+        const sub = this.client.subscribe(`/topic/group/${groupId}`, (message) => {
             try {
                 const parsed = JSON.parse(message.body);
                 callback(parsed);

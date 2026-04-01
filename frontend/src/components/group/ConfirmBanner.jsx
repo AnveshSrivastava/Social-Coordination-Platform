@@ -4,15 +4,17 @@ import { groupService } from '../../services/groupService';
 import { useToast } from '../../context/ToastContext';
 import './ConfirmBanner.css';
 
-export default function ConfirmBanner({ group }) {
+export default function ConfirmBanner({ group, onConfirmed }) {
     const toast = useToast();
 
-    if (!group || group.status !== 'CONFIRMATION') return null;
+    if (!group || group.status !== 'CONFIRMATION' || group.confirmed) return null;
 
     const handleConfirm = async () => {
         try {
             await groupService.confirm(group.id);
+            window.dispatchEvent(new CustomEvent('group-confirmed', { detail: { groupId: group.id } }));
             toast.success('Attendance confirmed!');
+            if (onConfirmed) onConfirmed(group.id);
         } catch (err) {
             toast.error(err.message || 'Failed to confirm');
         }
