@@ -112,6 +112,32 @@ public class GroupService {
         joinGroup(userId, groupId);
     }
 
+    public GroupDto updateGroup(String userId, String groupId, com.app.localgroup.group.dto.UpdateGroupDto dto) {
+        Group g = groupRepository.findById(groupId).orElseThrow(() -> new ResourceNotFoundException("Group not found"));
+        if (!g.getCreatorId().equals(userId)) throw new IllegalStateException("Only creator can update group");
+        if (g.getStatus() == Group.Status.ACTIVE || g.getStatus() == Group.Status.EXPIRED) {
+            throw new IllegalStateException("Cannot update group in ACTIVE or EXPIRED state");
+        }
+
+        long currentMemberCount = groupMemberRepository.findByGroupId(groupId).size();
+        if (dto.getMaxSize() != null) {
+            if (dto.getMaxSize() < currentMemberCount) {
+                throw new IllegalArgumentException("maxSize must be >= current member count");
+            }
+            g.setMaxSize(dto.getMaxSize());
+        }
+
+        if (dto.getDateTime() != null) {
+            if (dto.getDateTime().isBefore(java.time.Instant.now())) {
+                throw new IllegalArgumentException("dateTime must be in future");
+            }
+            g.setDateTime(dto.getDateTime());
+        }
+
+        Group saved = groupRepository.save(g);
+        return toDto(saved, userId);
+    }
+
     public void leaveGroup(String userId, String groupId) {
         Group g = groupRepository.findById(groupId).orElseThrow(() -> new ResourceNotFoundException("Group not found"));
         if (g.getStatus() == Group.Status.ACTIVE) throw new IllegalStateException("Cannot leave an active group");
@@ -152,7 +178,7 @@ public class GroupService {
             userConfirmed = groupMemberRepository.findByGroupId(g.getId()).stream()
                     .anyMatch(m -> m.getUserId().equals(userId) && m.isConfirmed());
         }
-        return GroupDto.builder()
+        GroupDto.GroupDtoBuilder builder = GroupDto.builder()
                 .id(g.getId())
                 .placeId(g.getPlaceId())
                 .creatorId(g.getCreatorId())
@@ -162,8 +188,38 @@ public class GroupService {
                 .status(g.getStatus())
                 .createdAt(g.getCreatedAt())
                 .memberCount(memberCount)
-                .confirmed(userConfirmed)
-                .build();
+                .confirmed(userConfirmed);
+
+        java.util.List<String> eligibleUserIds = (g.getConfirmationEligibleUserIds() == null || g.getConfirmationEligibleUserIds().isEmpty())
+                ? groupMemberRepository.findByGroupId(g.getId()).stream()
+                        .map(GroupMember::getUserId)
+                        .distinct()
+                        .toList()
+                : g.getConfirmationEligibleUserIds();
+
+        long confirmedEligible = groupMemberRepository.findByGroupId(g.getId()).stream()
+                .filter(m -> eligibleUserIds.contains(m.getUserId()) && m.isConfirmed())
+                .count();
+
+        builder.confirmationEligibleCount(eligibleUserIds.size())
+                .confirmationConfirmedCount((int) confirmedEligible);
+
+        if (g.getStatus() == Group.Status.ACTIVE) {
+            java.util.List<com.app.localgroup.group.dto.MemberInfoDto> members = groupMemberRepository.findByGroupId(g.getId()).stream()
+                    .map(m -> userRepository.findById(m.getUserId())
+                            .map(u -> com.app.localgroup.group.dto.MemberInfoDto.builder()
+                                    .userId(u.getId())
+                                    .name(u.getEmail())
+                                    .trustScore(u.getTrustScore())
+                                    .totalTrips(u.getTotalTrips())
+                                    .build())
+                            .orElse(null))
+                    .filter(java.util.Objects::nonNull)
+                    .toList();
+            builder.members(members);
+        }
+
+        return builder.build();
     }
 
     public List<GroupDto> getMyGroups(String userId) {

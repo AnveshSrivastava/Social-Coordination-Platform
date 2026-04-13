@@ -31,6 +31,9 @@ public class User {
     private int trustScore = 0;
 
     @Builder.Default
+    private int totalTrips = 0;
+
+    @Builder.Default
     private List<String> blockedUsers = new ArrayList<>();
 
     @Builder.Default

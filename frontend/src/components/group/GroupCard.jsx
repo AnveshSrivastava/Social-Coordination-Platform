@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Users, Clock, CalendarDays, Check } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Users, Clock, CalendarDays, Check, Edit3 } from 'lucide-react';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
+import Modal from '../ui/Modal';
 import { useAuth } from '../../context/AuthContext';
 import { groupService } from '../../services/groupService';
 import { useToast } from '../../context/ToastContext';
@@ -16,12 +17,25 @@ const STATUS_MAP = {
 };
 
 export default function GroupCard({ group, onLoginRequired, compact = false, onGroupChange, isJoined = false }) {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const toast = useToast();
     const [joining, setJoining] = useState(false);
     const [localJoined, setLocalJoined] = useState(isJoined);
     const [confirmed, setConfirmed] = useState(group.confirmed || false);
     const [localMemberCount, setLocalMemberCount] = useState(group.memberCount || 1);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [editDateTime, setEditDateTime] = useState(group.dateTime ? group.dateTime.slice(0, 16) : '');
+    const [editMaxSize, setEditMaxSize] = useState(group.maxSize || 2);
+    const [updating, setUpdating] = useState(false);
+
+    const isAdmin = user?.id === group.creatorId;
+
+    useEffect(() => {
+        setEditDateTime(group.dateTime ? group.dateTime.slice(0, 16) : '');
+        setEditMaxSize(group.maxSize || 2);
+        setLocalMemberCount(group.memberCount || 1);
+        setConfirmed(group.confirmed || false);
+    }, [group]);
 
     const status = STATUS_MAP[group.status] || STATUS_MAP.CREATED;
     const dateStr = group.dateTime
@@ -66,6 +80,28 @@ export default function GroupCard({ group, onLoginRequired, compact = false, onG
         }
     };
 
+    const handleUpdate = async () => {
+        if (!editDateTime && !editMaxSize) {
+            toast.error('Specify date/time or size to update');
+            return;
+        }
+        const payload = {};
+        if (editDateTime) payload.dateTime = new Date(editDateTime).toISOString();
+        if (editMaxSize && editMaxSize > 0) payload.maxSize = Number(editMaxSize);
+
+        setUpdating(true);
+        try {
+            await groupService.update(group.id, payload);
+            toast.success('Group updated successfully!');
+            setIsEditOpen(false);
+            onGroupChange?.();
+        } catch (err) {
+            toast.error(err.message || 'Update failed');
+        } finally {
+            setUpdating(false);
+        }
+    };
+
     const isAlreadyJoined = localJoined || isJoined || confirmed;
 
     return (
@@ -87,6 +123,11 @@ export default function GroupCard({ group, onLoginRequired, compact = false, onG
                 </div>
             </div>
             <div className="group-card-actions">
+                {isAdmin && (group.status === 'CREATED' || group.status === 'JOINABLE') && (
+                    <Button size="sm" variant="secondary" icon={<Edit3 size={14} />} onClick={() => setIsEditOpen(true)}>
+                        Edit Group
+                    </Button>
+                )}
                 {group.status === 'JOINABLE' && !isAlreadyJoined && (
                     <Button size="sm" onClick={handleJoin} loading={joining} disabled={joining}>
                         Join Group
@@ -109,6 +150,50 @@ export default function GroupCard({ group, onLoginRequired, compact = false, onG
                     <Badge variant="success" size="md">● Live</Badge>
                 )}
             </div>
+            {group.status === 'CONFIRMATION' && (
+                <div className="group-card-confirmation-progress">
+                    Confirmed {group.confirmationConfirmedCount || 0} / {group.confirmationEligibleCount || 0} eligible users
+                </div>
+            )}
+            {group.status === 'ACTIVE' && group.members && group.members.length > 0 && (
+                <div className="group-card-active-members">
+                    <h4>Members</h4>
+                    <div className="group-card-active-members-list">
+                        {group.members.map((member) => (
+                            <div key={member.userId} className="group-card-member-item">
+                                <div>{member.name || member.userId}</div>
+                                <div>Trust: {member.trustScore}</div>
+                                <div>Trips: {member.totalTrips}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Edit Group">
+                <div className="form-row">
+                    <label>Date & Time</label>
+                    <input
+                        type="datetime-local"
+                        value={editDateTime}
+                        onChange={(e) => setEditDateTime(e.target.value)}
+                    />
+                </div>
+                <div className="form-row">
+                    <label>Group Size</label>
+                    <input
+                        type="number"
+                        min="2"
+                        max="6"
+                        value={editMaxSize}
+                        onChange={(e) => setEditMaxSize(e.target.value)}
+                    />
+                </div>
+                <div className="modal-actions">
+                    <Button size="sm" onClick={() => setIsEditOpen(false)} variant="default">Cancel</Button>
+                    <Button size="sm" onClick={handleUpdate} loading={updating} disabled={updating}>Save</Button>
+                </div>
+            </Modal>
         </div>
     );
 }

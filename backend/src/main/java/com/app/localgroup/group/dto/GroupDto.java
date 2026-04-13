@@ -1,10 +1,12 @@
 package com.app.localgroup.group.dto;
 
+import com.app.localgroup.group.dto.MemberInfoDto;
 import com.app.localgroup.group.model.Group;
 import lombok.Builder;
 import lombok.Data;
 
 import java.time.Instant;
+import java.util.List;
 
 @Data
 @Builder
@@ -19,4 +21,7 @@ public class GroupDto {
     private Instant createdAt;
     private long memberCount;
     private boolean confirmed;
+    private int confirmationEligibleCount;
+    private int confirmationConfirmedCount;
+    private java.util.List<MemberInfoDto> members;
 }

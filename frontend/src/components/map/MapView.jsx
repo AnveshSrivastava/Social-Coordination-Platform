@@ -17,7 +17,7 @@ const CATEGORY_CONFIG = {
     BAR: { emoji: '🍸', cssClass: 'bar', label: 'Bar' },
     NIGHTCLUB: { emoji: '🕺', cssClass: 'nightclub', label: 'Nightclub' },
     AMUSEMENT_PARK: { emoji: '🎡', cssClass: 'amusement', label: 'Amusement Park' },
-    PLACE_OF_WORSHIP: { emoji: '🛕', cssClass: 'worship', label: 'Place of Worship' },
+    PLACE_OF_WORSHIP: { emoji: '🛐', cssClass: 'worship', label: 'Place of Worship' },
     PARK: { emoji: '🌳', cssClass: 'park', label: 'Park' },
     TOURIST: { emoji: '📸', cssClass: 'tourist', label: 'Tourist Spot' },
     ACTIVITY: { emoji: '🎯', cssClass: 'activity', label: 'Activity' },

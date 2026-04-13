@@ -41,6 +41,8 @@ public class GroupLifecycleScheduler {
         groupRepository.findAll().stream().filter(g -> g.getStatus() == Group.Status.JOINABLE)
                 .filter(g -> g.getDateTime().minusSeconds(confirmationWindowHours * 3600).isBefore(now) || g.getDateTime().isBefore(now))
                 .forEach(g -> {
+                    List<GroupMember> members = groupMemberRepository.findByGroupId(g.getId());
+                    g.setConfirmationEligibleUserIds(members.stream().map(GroupMember::getUserId).distinct().toList());
                     g.setStatus(Group.Status.CONFIRMATION);
                     groupRepository.save(g);
                     log.info("Group {} transitioned JOINABLE->CONFIRMATION", g.getId());
@@ -50,17 +52,36 @@ public class GroupLifecycleScheduler {
         groupRepository.findAll().stream().filter(g -> g.getStatus() == Group.Status.CONFIRMATION)
                 .filter(g -> !g.getDateTime().isAfter(now))
                 .forEach(g -> {
-                    List<GroupMember> members = groupMemberRepository.findByGroupId(g.getId());
-                    // remove unconfirmed -> apply no-show penalty
-                    members.stream().filter(m -> !m.isConfirmed()).forEach(m -> {
-                        userRepository.findById(m.getUserId()).ifPresent(u -> {
-                            u.setTrustScore(u.getTrustScore() - 2); // penalty for no-show
-                            userRepository.save(u);
-                        });
-                        groupMemberRepository.delete(m);
-                    });
-                    long confirmed = groupMemberRepository.findByGroupId(g.getId()).stream().filter(GroupMember::isConfirmed).count();
-                    if (confirmed >= 2) {
+                    List<String> eligibleUsers = g.getConfirmationEligibleUserIds();
+                    if (eligibleUsers == null || eligibleUsers.isEmpty()) {
+                        eligibleUsers = groupMemberRepository.findByGroupId(g.getId()).stream()
+                                .map(GroupMember::getUserId)
+                                .distinct()
+                                .toList();
+                    }
+
+                    // penalty + remove unconfirmed eligible users
+                    for (String userId : eligibleUsers) {
+                        groupMemberRepository.findByGroupId(g.getId()).stream()
+                                .filter(m -> m.getUserId().equals(userId))
+                                .findFirst()
+                                .ifPresent(m -> {
+                                    if (!m.isConfirmed()) {
+                                        userRepository.findById(m.getUserId()).ifPresent(u -> {
+                                            u.setTrustScore(u.getTrustScore() - 2); // penalty for no-show
+                                            userRepository.save(u);
+                                        });
+                                        groupMemberRepository.delete(m);
+                                    }
+                                });
+                    }
+
+                    long confirmedEligible = eligibleUsers.stream().filter(uid ->
+                            groupMemberRepository.findByGroupId(g.getId()).stream()
+                                    .anyMatch(m -> m.getUserId().equals(uid) && m.isConfirmed())
+                    ).count();
+
+                    if (!eligibleUsers.isEmpty() && confirmedEligible == eligibleUsers.size()) {
                         g.setStatus(Group.Status.ACTIVE);
                         groupRepository.save(g);
                         log.info("Group {} transitioned CONFIRMATION->ACTIVE", g.getId());
@@ -75,10 +96,11 @@ public class GroupLifecycleScheduler {
         groupRepository.findAll().stream().filter(g -> g.getStatus() == Group.Status.ACTIVE)
                 .filter(g -> g.getDateTime().plusSeconds(expireBufferMinutes * 60).isBefore(now))
                 .forEach(g -> {
-                    // award +1 for confirmed attendance
+                    // award +1 for confirmed attendance and count trips
                     groupMemberRepository.findByGroupId(g.getId()).stream().filter(GroupMember::isConfirmed).forEach(m -> {
                         userRepository.findById(m.getUserId()).ifPresent(u -> {
                             u.setTrustScore(u.getTrustScore() + 1);
+                            u.setTotalTrips(u.getTotalTrips() + 1);
                             userRepository.save(u);
                         });
                     });

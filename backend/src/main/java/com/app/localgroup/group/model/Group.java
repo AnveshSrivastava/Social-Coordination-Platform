@@ -6,6 +6,8 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Document(collection = "groups")
 @Data
@@ -31,6 +33,9 @@ public class Group {
     private Status status;
 
     private String inviteCodeHash;
+
+    @Builder.Default
+    private List<String> confirmationEligibleUserIds = new ArrayList<>();
 
     @Builder.Default
     private Instant createdAt = Instant.now();

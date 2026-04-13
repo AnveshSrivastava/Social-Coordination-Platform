@@ -3,6 +3,7 @@ package com.app.localgroup.group;
 import com.app.localgroup.common.ApiResponse;
 import com.app.localgroup.group.dto.CreateGroupDto;
 import com.app.localgroup.group.dto.GroupDto;
+import com.app.localgroup.group.dto.UpdateGroupDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -57,6 +58,15 @@ public class GroupController {
         groupService.confirmAttendance(userId, groupId);
         GroupDto updated = groupService.getGroupById(groupId, userId);
         return ResponseEntity.ok(ApiResponse.<GroupDto>builder().success(true).data(updated).message("Attendance confirmed").build());
+    }
+
+    @PutMapping("/{groupId}/update")
+    public ResponseEntity<ApiResponse<GroupDto>> updateGroup(@PathVariable("groupId") String groupId,
+            @RequestBody UpdateGroupDto dto,
+            Authentication auth) {
+        String userId = (String) auth.getPrincipal();
+        GroupDto updated = groupService.updateGroup(userId, groupId, dto);
+        return ResponseEntity.ok(ApiResponse.<GroupDto>builder().success(true).data(updated).message("Group updated").build());
     }
 
     @GetMapping("/me")

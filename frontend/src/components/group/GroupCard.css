@@ -42,3 +42,49 @@
     align-items: center;
     gap: var(--space-2);
 }
+
+.group-card-confirmation-progress {
+    margin-top: var(--space-3);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.group-card-active-members {
+    margin-top: var(--space-3);
+}
+
+.group-card-active-members-list {
+    max-height: 160px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2);
+    background: var(--color-surface);
+}
+
+.group-card-member-item {
+    padding: var(--space-1);
+    border-bottom: 1px solid var(--color-border-light);
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2);
+    font-size: var(--font-size-sm);
+}
+
+.group-card-member-item:last-child {
+    border-bottom: none;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+}
+
+.form-row {
+    margin-bottom: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}

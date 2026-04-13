@@ -39,4 +39,11 @@ export const groupService = {
     async getGroupsByPlace(placeId) {
         return apiClient(`/groups/place/${encodeURIComponent(placeId)}`);
     },
+
+    async update(groupId, body) {
+        return apiClient(`/groups/${groupId}/update`, {
+            method: 'PUT',
+            body,
+        });
+    },
 };
