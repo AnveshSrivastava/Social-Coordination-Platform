@@ -155,7 +155,7 @@ export default function GroupCard({ group, onLoginRequired, compact = false, onG
                     Confirmed {group.confirmationConfirmedCount || 0} / {group.confirmationEligibleCount || 0} eligible users
                 </div>
             )}
-            {group.status === 'ACTIVE' && group.members && group.members.length > 0 && (
+            {(group.status === 'CONFIRMATION' || group.status === 'ACTIVE') && group.members && group.members.length > 0 && (
                 <div className="group-card-active-members">
                     <h4>Members</h4>
                     <div className="group-card-active-members-list">

@@ -48,11 +48,11 @@ public class ChatService {
                         404
                 ));
 
-        // Validate group is ACTIVE
-        if (group.getStatus() != Group.Status.ACTIVE) {
-            log.warn("Chat rejected for group {}: status is {} not ACTIVE", groupId, group.getStatus());
+        // Validate group is CONFIRMATION or ACTIVE
+        if (group.getStatus() != Group.Status.CONFIRMATION && group.getStatus() != Group.Status.ACTIVE) {
+            log.warn("Chat rejected for group {}: status is {} not CONFIRMATION or ACTIVE", groupId, group.getStatus());
             throw new ChatException(
-                    "Chat allowed only when group is ACTIVE. Current status: " + group.getStatus(),
+                    "Chat allowed only when group is CONFIRMATION or ACTIVE. Current status: " + group.getStatus(),
                     ChatException.ErrorCode.GROUP_NOT_ACTIVE,
                     409
             );

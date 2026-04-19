@@ -122,7 +122,7 @@ export default function MapPage() {
 
             {/* Chat Panel */}
             <ChatPanel
-                group={!chatGroup}
+                group={chatGroup}
                 isOpen={!!chatGroup}
                 onClose={() => setChatGroup(null)}
             />

@@ -57,6 +57,12 @@ export default function MyGroupsDrawer({ isOpen, onClose, groups = [], onOpenCha
                                             <Users size={12} /> {g.memberCount || 1}/{g.maxSize}
                                         </span>
                                     </div>
+                                    {g.status === 'CONFIRMATION' && (
+                                        <button className="mgd-chat-btn" onClick={() => onOpenChat?.(g)}>
+                                            <MessageCircle size={16} />
+                                            Chat
+                                        </button>
+                                    )}
                                 </div>
                             );
                         })}

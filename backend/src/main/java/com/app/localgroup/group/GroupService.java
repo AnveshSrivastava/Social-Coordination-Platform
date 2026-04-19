@@ -204,7 +204,7 @@ public class GroupService {
         builder.confirmationEligibleCount(eligibleUserIds.size())
                 .confirmationConfirmedCount((int) confirmedEligible);
 
-        if (g.getStatus() == Group.Status.ACTIVE) {
+        if (g.getStatus() == Group.Status.CONFIRMATION || g.getStatus() == Group.Status.ACTIVE) {
             java.util.List<com.app.localgroup.group.dto.MemberInfoDto> members = groupMemberRepository.findByGroupId(g.getId()).stream()
                     .map(m -> userRepository.findById(m.getUserId())
                             .map(u -> com.app.localgroup.group.dto.MemberInfoDto.builder()

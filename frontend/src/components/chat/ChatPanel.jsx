@@ -11,6 +11,7 @@ export default function ChatPanel({ group, isOpen, onClose }) {
     const [input, setInput] = useState('');
     const [connected, setConnected] = useState(false);
     const [error, setError] = useState(null);
+    const [isChatEnabled, setIsChatEnabled] = useState(false);
     const messagesEndRef = useRef(null);
 
     useEffect(() => {
@@ -42,12 +43,14 @@ export default function ChatPanel({ group, isOpen, onClose }) {
             }
         };
 
+        setIsChatEnabled(group?.status === 'CONFIRMATION' || group?.status === 'ACTIVE');
         connect();
 
         return () => {
             chatService.unsubscribe(group.id);
             setConnected(false);
             setError(null);
+            setIsChatEnabled(false);
         };
     }, [isOpen, group]);
 
@@ -132,11 +135,11 @@ export default function ChatPanel({ group, isOpen, onClose }) {
                     className="chat-input"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Type a message..."
+                    placeholder={isChatEnabled ? 'Type a message...' : 'Chat available in confirmation or active phase'}
                     maxLength={500}
-                    disabled={!connected}
+                    disabled={!connected || !isChatEnabled}
                 />
-                <button type="submit" className="chat-send" disabled={!input.trim() || !connected}>
+                <button type="submit" className="chat-send" disabled={!input.trim() || !connected || !isChatEnabled}>
                     <Send size={18} />
                 </button>
             </form>
