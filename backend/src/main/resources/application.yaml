@@ -1,9 +1,12 @@
 spring:
   application:
     name: social-coordination-platform
-  mongodb:
-    auto-index-creation: true
-    uri: ${SPRING_MONGODB_URI:mongodb://localhost:27017/social_coordination}
+
+  data:
+    mongodb:
+      uri: ${SPRING_MONGODB_URI:mongodb://localhost:27017/social_coordination}
+      auto-index-creation: true
+
 server:
   port: ${PORT:8080}
 
