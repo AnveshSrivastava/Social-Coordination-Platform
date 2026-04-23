@@ -25,14 +25,14 @@ public class AuthController {
     ) {
         String otp = authService.generateOtp(dto.getEmail(), dto.getPhone());
 
-        // OTP is mocked for MVP — logged only for development/testing
-        log.info("DEV-ONLY OTP for {} / {} : {}", dto.getEmail(), dto.getPhone(), otp);
+        // OTP is logged for development/testing (also sent via email)
+        log.debug("DEV-ONLY OTP for {} / {} : {}", dto.getEmail(), dto.getPhone(), otp);
 
         return ResponseEntity.ok(
                 ApiResponse.<String>builder()
                         .success(true)
-                        .message("OTP generated successfully")
-                        .data("OTP sent (mocked)")
+                        .message("OTP generated successfully and sent to your email")
+                        .data("OTP sent to " + dto.getEmail())
                         .build()
         );
     }

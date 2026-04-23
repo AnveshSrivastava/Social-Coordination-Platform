@@ -83,7 +83,7 @@ cd backend
 ./mvnw test
 ```
 
-## What recruiters should know
+## What users should know
 
 - This project is built for a real-world social coordination use case.
 - The feature work is architected to avoid regressions and preserve existing behavior.

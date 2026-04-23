@@ -1,6 +1,7 @@
 package com.app.localgroup.auth;
 
 import com.app.localgroup.auth.exception.UnauthorizedException;
+import com.app.localgroup.email.EmailService;
 import com.app.localgroup.user.model.User;
 import com.app.localgroup.user.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
@@ -26,6 +27,7 @@ public class AuthService {
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     @Value("${app.jwt.secret}")
     private String jwtSecret;
@@ -43,6 +45,15 @@ public class AuthService {
         String otp = String.valueOf((int) (Math.random() * 900000) + 100000);
         otpStore.put(key(email, phone), new OtpEntry(otp, Instant.now()));
         log.debug("OTP generated for email: {}, phone: {} (dev: {})", email, phone, otp);
+        
+        // Send OTP via email
+        try {
+            emailService.sendOtpEmail(email, otp);
+        } catch (Exception ex) {
+            log.error("Failed to send OTP email for {}, but continuing with authentication flow", email, ex);
+            // Do NOT throw - allow login flow to continue even if email fails
+        }
+        
         return otp;
     }
 

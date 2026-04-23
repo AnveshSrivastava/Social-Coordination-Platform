@@ -7,6 +7,22 @@ spring:
       uri: ${SPRING_MONGODB_URI:mongodb://localhost:27017/social_coordination}
       auto-index-creation: false
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
 server:
   port: ${PORT:8080}
 
