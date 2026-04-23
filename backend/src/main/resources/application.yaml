@@ -5,7 +5,7 @@ spring:
     auto-index-creation: true
     uri: mongodb+srv://anveshsrivastava9_db_user:5heRlpNb68ZqhzRz@socialcoordinationplatf.3ycjbgb.mongodb.net/social_coordination?retryWrites=true&w=majority&appName=SocialCoordinationPlatform
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 app:
   jwt:
