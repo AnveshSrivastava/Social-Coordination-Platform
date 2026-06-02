@@ -36,7 +36,8 @@ public class Place {
     private PlaceSource source = PlaceSource.INTERNAL;  // Source of place data
 
     public enum Category {
-        CAFE, RESTAURANT, ACTIVITY, CAMPUS
+        CAFE, RESTAURANT, ACTIVITY, CAMPUS, MALL, CINEMA, BOWLING_ALLEY, 
+        BAR, NIGHTCLUB, PLACE_OF_WORSHIP, PARK, TOURIST, AMUSEMENT_PARK
     }
 
     public enum PlaceSource {

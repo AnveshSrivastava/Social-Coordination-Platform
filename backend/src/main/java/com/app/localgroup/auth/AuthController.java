@@ -1,38 +1,48 @@
 package com.app.localgroup.auth;
 
 import com.app.localgroup.auth.dto.RequestOtpDto;
+import com.app.localgroup.auth.dto.RequestOtpResponseDto;
 import com.app.localgroup.auth.dto.VerifyOtpDto;
 import com.app.localgroup.common.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * AuthController for OTP-based authentication.
+ * 
+ * DEMO MODE:
+ * The /auth/request-otp endpoint returns the generated OTP in the response.
+ * This is for demonstration purposes only. In production, OTPs should be sent
+ * via email/SMS and NOT returned in the API response.
+ */
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
-
     private final AuthService authService;
 
     @PostMapping("/request-otp")
-    public ResponseEntity<ApiResponse<String>> requestOtp(
+    public ResponseEntity<ApiResponse<RequestOtpResponseDto>> requestOtp(
             @Valid @RequestBody RequestOtpDto dto
     ) {
         String otp = authService.generateOtp(dto.getEmail(), dto.getPhone());
 
-        // OTP is logged for development/testing (also sent via email)
-        log.debug("DEV-ONLY OTP for {} / {} : {}", dto.getEmail(), dto.getPhone(), otp);
+        // DEMO MODE: Return OTP in response for immediate display in UI
+        RequestOtpResponseDto responseData = RequestOtpResponseDto.builder()
+                .success(true)
+                .otp(otp)
+                .demoMode(true)
+                .message("Demo Mode: OTP displayed below. In production, this would be sent via email.")
+                .build();
 
         return ResponseEntity.ok(
-                ApiResponse.<String>builder()
+                ApiResponse.<RequestOtpResponseDto>builder()
                         .success(true)
-                        .message("OTP generated successfully and sent to your email")
-                        .data("OTP sent to " + dto.getEmail())
+                        .message("OTP generated successfully (Demo Mode)")
+                        .data(responseData)
                         .build()
         );
     }

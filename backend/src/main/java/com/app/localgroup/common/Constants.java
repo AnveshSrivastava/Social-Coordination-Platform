@@ -7,6 +7,11 @@ public final class Constants {
     public static final String AUTH_HEADER = "Authorization";
     public static final String TOKEN_PREFIX = "Bearer ";
 
+    // Mock/Demo Account (for testing and demos)
+    public static final String MOCK_ACCOUNT_EMAIL = "mock@sca.com";
+    public static final String MOCK_ACCOUNT_PHONE = "9999999999";
+    public static final String MOCK_ACCOUNT_OTP = "000000";
+
     // Chat
     public static final int CHAT_MESSAGE_MAX_LENGTH = 500;
     public static final String CHAT_ERROR_GROUP_NOT_FOUND = "Group not found";

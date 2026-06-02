@@ -1,7 +1,7 @@
 package com.app.localgroup.auth;
 
 import com.app.localgroup.auth.exception.UnauthorizedException;
-import com.app.localgroup.email.EmailService;
+import com.app.localgroup.common.Constants;
 import com.app.localgroup.user.model.User;
 import com.app.localgroup.user.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
@@ -20,6 +20,17 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * AuthService for OTP-based authentication.
+ * 
+ * DEMO MODE IMPLEMENTATION:
+ * This service operates in demo/testing mode where:
+ * - OTPs are logged to console and returned in API responses
+ * - Email delivery is disabled
+ * - This is intended for project evaluation and recruiter demonstrations
+ * 
+ * For production use, implement proper email/SMS delivery and remove OTP from responses.
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -27,7 +38,6 @@ public class AuthService {
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private final UserRepository userRepository;
-    private final EmailService emailService;
 
     @Value("${app.jwt.secret}")
     private String jwtSecret;
@@ -42,16 +52,30 @@ public class AuthService {
     private static final long OTP_EXPIRY_SECONDS = 300; // 5 minutes
 
     public String generateOtp(String email, String phone) {
-        String otp = String.valueOf((int) (Math.random() * 900000) + 100000);
-        otpStore.put(key(email, phone), new OtpEntry(otp, Instant.now()));
-        log.debug("OTP generated for email: {}, phone: {} (dev: {})", email, phone, otp);
+        // Check if this is the mock account
+        boolean isMockAccount = Constants.MOCK_ACCOUNT_EMAIL.equals(email) && 
+                                Constants.MOCK_ACCOUNT_PHONE.equals(phone);
         
-        // Send OTP via email
-        try {
-            emailService.sendOtpEmail(email, otp);
-        } catch (Exception ex) {
-            log.error("Failed to send OTP email for {}, but continuing with authentication flow", email, ex);
-            // Do NOT throw - allow login flow to continue even if email fails
+        String otp = isMockAccount ? Constants.MOCK_ACCOUNT_OTP : 
+                     String.valueOf((int) (Math.random() * 900000) + 100000);
+        
+        otpStore.put(key(email, phone), new OtpEntry(otp, Instant.now()));
+        
+        // DEMO MODE: Log OTP to console for display in UI
+        if (isMockAccount) {
+            log.info("===============================================================");
+            log.info("DEMO MODE - OTP GENERATED FOR MOCK ACCOUNT");
+            log.info("Email: {}", email);
+            log.info("Phone: {}", phone);
+            log.info("OTP: {}", otp);
+            log.info("===============================================================");
+        } else {
+            log.info("===============================================================");
+            log.info("DEMO MODE - OTP GENERATED");
+            log.info("Email: {}", email);
+            log.info("Phone: {}", phone);
+            log.info("OTP: {}", otp);
+            log.info("===============================================================");
         }
         
         return otp;
@@ -59,22 +83,37 @@ public class AuthService {
 
     public String verifyOtpAndIssueToken(String email, String phone, String otp) {
         String mapKey = key(email, phone);
-        OtpEntry entry = otpStore.get(mapKey);
+        
+        // Check if this is the mock account
+        boolean isMockAccount = Constants.MOCK_ACCOUNT_EMAIL.equals(email) && 
+                                Constants.MOCK_ACCOUNT_PHONE.equals(phone);
+        
+        if (isMockAccount) {
+            // For mock account, validate against the static mock OTP
+            if (!Constants.MOCK_ACCOUNT_OTP.equals(otp)) {
+                log.warn("DEMO: Invalid OTP for mock account - received: {}", otp);
+                throw new UnauthorizedException("Invalid OTP");
+            }
+            log.info("DEMO: OTP verified for mock account");
+        } else {
+            // Normal OTP validation flow (demo mode)
+            OtpEntry entry = otpStore.get(mapKey);
 
-        if (entry == null) {
-            log.warn("OTP verification failed: No OTP found for email: {}, phone: {}", email, phone);
-            throw new UnauthorizedException("Invalid OTP");
-        }
+            if (entry == null) {
+                log.warn("OTP verification failed: No OTP found for email: {}, phone: {}", email, phone);
+                throw new UnauthorizedException("Invalid OTP");
+            }
 
-        if (!entry.otp().equals(otp)) {
-            log.warn("OTP verification failed: Invalid OTP for email: {}, phone: {}", email, phone);
-            throw new UnauthorizedException("Invalid OTP");
-        }
+            if (!entry.otp().equals(otp)) {
+                log.warn("OTP verification failed: Invalid OTP for email: {}, phone: {}", email, phone);
+                throw new UnauthorizedException("Invalid OTP");
+            }
 
-        if (Instant.now().isAfter(entry.createdAt().plusSeconds(OTP_EXPIRY_SECONDS))) {
-            otpStore.remove(mapKey);
-            log.warn("OTP verification failed: OTP expired for email: {}, phone: {}", email, phone);
-            throw new UnauthorizedException("OTP expired");
+            if (Instant.now().isAfter(entry.createdAt().plusSeconds(OTP_EXPIRY_SECONDS))) {
+                otpStore.remove(mapKey);
+                log.warn("OTP verification failed: OTP expired for email: {}, phone: {}", email, phone);
+                throw new UnauthorizedException("OTP expired");
+            }
         }
 
         try {
@@ -85,7 +124,11 @@ public class AuthService {
                                     email, existing.getPhone(), phone);
                             throw new UnauthorizedException("Email and phone mismatch");
                         }
-                        log.info("Existing user verified: {}", email);
+                        if (isMockAccount) {
+                            log.info("DEMO: Mock account authenticated");
+                        } else {
+                            log.info("Existing user verified: {}", email);
+                        }
                         return existing;
                     })
                     .orElseGet(() -> {
@@ -97,7 +140,11 @@ public class AuthService {
                                         .trustScore(0)
                                         .build()
                         );
-                        log.info("New user created and verified: {}", email);
+                        if (isMockAccount) {
+                            log.info("DEMO: Mock account created and verified");
+                        } else {
+                            log.info("New user created and verified: {}", email);
+                        }
                         return newUser;
                     });
 
@@ -112,7 +159,10 @@ public class AuthService {
                     .signWith(signingKey, SignatureAlgorithm.HS256)
                     .compact();
 
-            otpStore.remove(mapKey);
+            if (!isMockAccount) {
+                otpStore.remove(mapKey);
+            }
+            
             log.info("JWT issued successfully for user: {}", email);
             return jwt;
         } catch (Exception ex) {
