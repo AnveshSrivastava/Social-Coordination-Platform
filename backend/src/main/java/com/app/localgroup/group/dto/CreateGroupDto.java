@@ -1,6 +1,7 @@
 package com.app.localgroup.group.dto;
 
 import com.app.localgroup.group.model.Group;
+import com.app.localgroup.group.model.GenderRestriction;
 import com.app.localgroup.place.dto.MapPlaceDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -10,21 +11,10 @@ import lombok.Data;
 
 import java.time.Instant;
 
-/**
- * DTO for creating a group.
- * 
- * Supports two flows:
- * 1. EXISTING FLOW: placeId only (backward compatible, uses manually created places)
- * 2. NEW FLOW: mapPlace only (creates dynamic places from map selection)
- * 
- * Validation: At least one of placeId or mapPlace must be provided.
- */
 @Data
 public class CreateGroupDto {
-    // Legacy flow: existing manually created places
     private String placeId;
 
-    // New flow: dynamic places from map selection
     @Valid
     private MapPlaceDto mapPlace;
 
@@ -38,6 +28,12 @@ public class CreateGroupDto {
     @NotNull
     private Group.Visibility visibility;
 
-    private String inviteCode; // only for PRIVATE
-}
+    private String inviteCode;
 
+    /**
+     * Gender restriction for this group.
+     * Defaults to EVERYONE if not specified by the creator.
+     * Backend enforces join rules — frontend selection alone is NOT sufficient.
+     */
+    private GenderRestriction genderRestriction = GenderRestriction.EVERYONE;
+}

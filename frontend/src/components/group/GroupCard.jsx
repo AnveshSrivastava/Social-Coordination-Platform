@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Users, Clock, CalendarDays, Check, Edit3 } from 'lucide-react';
+import { Users, CalendarDays, Check, Edit3, MapPin, UserCheck } from 'lucide-react';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
@@ -14,6 +14,12 @@ const STATUS_MAP = {
     ACTIVE: { label: 'Active', variant: 'primary' },
     EXPIRED: { label: 'Expired', variant: 'default' },
     CREATED: { label: 'New', variant: 'primary' },
+};
+
+const GENDER_BADGE_MAP = {
+    EVERYONE: { label: '🌍 Everyone', variant: 'default' },
+    MALE_ONLY: { label: '👨 Male Only', variant: 'primary' },
+    FEMALE_ONLY: { label: '👩 Female Only', variant: 'warning' },
 };
 
 export default function GroupCard({ group, onLoginRequired, compact = false, onGroupChange, isJoined = false }) {
@@ -38,22 +44,38 @@ export default function GroupCard({ group, onLoginRequired, compact = false, onG
     }, [group]);
 
     const status = STATUS_MAP[group.status] || STATUS_MAP.CREATED;
+    const genderBadge = GENDER_BADGE_MAP[group.genderRestriction] || GENDER_BADGE_MAP.EVERYONE;
+
     const dateStr = group.dateTime
         ? new Date(group.dateTime).toLocaleDateString('en-IN', {
             day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
         })
         : 'TBD';
 
+    const canUserJoin = () => {
+        if (!user) return true; // Will trigger login required if unauthenticated
+        const restriction = group.genderRestriction || 'EVERYONE';
+        if (restriction === 'EVERYONE') return true;
+        if (restriction === 'MALE_ONLY') return user.gender === 'MALE';
+        if (restriction === 'FEMALE_ONLY') return user.gender === 'FEMALE';
+        return false;
+    };
+
     const handleJoin = async () => {
-        // Pre-flight auth check — prevent 400/401 by showing login modal
         if (!isAuthenticated || !localStorage.getItem('jwt_token')) {
             onLoginRequired?.();
             return;
         }
+
+        if (!canUserJoin()) {
+            const reqLabel = group.genderRestriction === 'MALE_ONLY' ? 'Male' : 'Female';
+            toast.error(`This group is restricted to ${reqLabel} members only.`);
+            return;
+        }
+
         setJoining(true);
         try {
             await groupService.join(group.id);
-            // Optimistic UI update
             setLocalJoined(true);
             setLocalMemberCount((c) => c + 1);
             toast.success('Joined group successfully!');
@@ -111,7 +133,17 @@ export default function GroupCard({ group, onLoginRequired, compact = false, onG
                 <Badge variant={group.visibility === 'PRIVATE' ? 'warning' : 'default'}>
                     {group.visibility === 'PRIVATE' ? '🔒 Private' : 'Public'}
                 </Badge>
+                <Badge variant={genderBadge.variant}>{genderBadge.label}</Badge>
             </div>
+
+            {group.placeName && (
+                <div className="group-card-place-title">
+                    <MapPin size={14} />
+                    <span>{group.placeName}</span>
+                    {group.placeCategory && <span className="group-card-category">({group.placeCategory})</span>}
+                </div>
+            )}
+
             <div className="group-card-info">
                 <div className="group-card-detail">
                     <CalendarDays size={14} />
@@ -122,6 +154,7 @@ export default function GroupCard({ group, onLoginRequired, compact = false, onG
                     <span>{localMemberCount}/{group.maxSize} members</span>
                 </div>
             </div>
+
             <div className="group-card-actions">
                 {isAdmin && (group.status === 'CREATED' || group.status === 'JOINABLE') && (
                     <Button size="sm" variant="secondary" icon={<Edit3 size={14} />} onClick={() => setIsEditOpen(true)}>
@@ -129,7 +162,13 @@ export default function GroupCard({ group, onLoginRequired, compact = false, onG
                     </Button>
                 )}
                 {group.status === 'JOINABLE' && !isAlreadyJoined && (
-                    <Button size="sm" onClick={handleJoin} loading={joining} disabled={joining}>
+                    <Button
+                        size="sm"
+                        onClick={handleJoin}
+                        loading={joining}
+                        disabled={joining || (isAuthenticated && !canUserJoin())}
+                        title={!canUserJoin() ? `Restricted to ${group.genderRestriction}` : ''}
+                    >
                         Join Group
                     </Button>
                 )}
@@ -150,18 +189,20 @@ export default function GroupCard({ group, onLoginRequired, compact = false, onG
                     <Badge variant="success" size="md">● Live</Badge>
                 )}
             </div>
+
             {group.status === 'CONFIRMATION' && (
                 <div className="group-card-confirmation-progress">
                     Confirmed {group.confirmationConfirmedCount || 0} / {group.confirmationEligibleCount || 0} eligible users
                 </div>
             )}
+
             {(group.status === 'CONFIRMATION' || group.status === 'ACTIVE') && group.members && group.members.length > 0 && (
                 <div className="group-card-active-members">
                     <h4>Members</h4>
                     <div className="group-card-active-members-list">
                         {group.members.map((member) => (
                             <div key={member.userId} className="group-card-member-item">
-                                <div>{member.name || member.userId}</div>
+                                <div style={{ fontWeight: 600 }}>@{member.username || member.userId}</div>
                                 <div>Trust: {member.trustScore}</div>
                                 <div>Trips: {member.totalTrips}</div>
                             </div>

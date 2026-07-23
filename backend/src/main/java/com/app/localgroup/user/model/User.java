@@ -24,6 +24,30 @@ public class User {
     @Indexed(unique = true)
     private String phone;
 
+    /**
+     * Username: unique, 3–25 chars, ^[a-zA-Z0-9_]+$ (stored lowercase).
+     * Null for users who have not completed their profile yet.
+     * Sparse unique index created in MongoConfig to allow multiple nulls.
+     */
+    private String username;
+
+    /**
+     * Age: 13–99. Immutable after first save — enforced in UserService.
+     * Null for users who have not completed their profile yet.
+     */
+    private Integer age;
+
+    /**
+     * Gender: MALE, FEMALE, OTHER. Immutable after first save — enforced in UserService.
+     * Null for users who have not completed their profile yet.
+     */
+    private Gender gender;
+
+    /**
+     * Optional bio, max 250 characters. Always editable.
+     */
+    private String bio;
+
     @Builder.Default
     private boolean verified = false;
 

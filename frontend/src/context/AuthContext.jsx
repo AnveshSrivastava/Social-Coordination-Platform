@@ -15,6 +15,7 @@ export function AuthProvider({ children }) {
             if (res?.data) {
                 setUser(res.data);
                 setIsAuthenticated(true);
+                return res.data;
             }
         } catch {
             setUser(null);
@@ -23,6 +24,7 @@ export function AuthProvider({ children }) {
         } finally {
             setLoading(false);
         }
+        return null;
     }, []);
 
     useEffect(() => {
@@ -35,7 +37,7 @@ export function AuthProvider({ children }) {
 
     const login = async (token) => {
         localStorage.setItem('jwt_token', token);
-        await fetchUser();
+        return await fetchUser();
     };
 
     const logout = () => {
@@ -44,8 +46,22 @@ export function AuthProvider({ children }) {
         setIsAuthenticated(false);
     };
 
+    const profileComplete = Boolean(
+        user && user.username && user.age !== null && user.age !== undefined && user.gender
+    );
+
     return (
-        <AuthContext.Provider value={{ user, loading, isAuthenticated, login, logout, fetchUser }}>
+        <AuthContext.Provider
+            value={{
+                user,
+                loading,
+                isAuthenticated,
+                profileComplete,
+                login,
+                logout,
+                fetchUser,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );

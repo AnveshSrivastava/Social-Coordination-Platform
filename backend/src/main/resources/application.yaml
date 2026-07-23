@@ -4,7 +4,7 @@ spring:
 
   data:
     mongodb:
-      uri: ${SPRING_MONGODB_URI:mongodb://localhost:27017/social_coordination}
+      uri: ${SPRING_MONGODB_URI}
       auto-index-creation: false
 
 server:
