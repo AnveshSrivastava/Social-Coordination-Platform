@@ -110,7 +110,9 @@ export default function Navbar({ onLoginClick, transparent = false }) {
                                 onClick={() => setDropdownOpen(!dropdownOpen)}
                             >
                                 <div className="navbar-avatar">
-                                    {user?.email?.charAt(0).toUpperCase() || 'U'}
+                                    {user?.username
+                                        ? user.username.charAt(0).toUpperCase()
+                                        : user?.email?.charAt(0).toUpperCase() || 'U'}
                                 </div>
                                 <ChevronDown size={16} className={`navbar-chevron ${dropdownOpen ? 'navbar-chevron--open' : ''}`} />
                             </button>
@@ -118,8 +120,10 @@ export default function Navbar({ onLoginClick, transparent = false }) {
                             {dropdownOpen && (
                                 <div className="navbar-dropdown animate-scale-in">
                                     <div className="navbar-dropdown-header">
-                                        <span className="navbar-dropdown-email">{user?.email}</span>
-                                        <span className="navbar-dropdown-phone">{user?.phone}</span>
+                                        <span className="navbar-dropdown-email">
+                                            @{user?.username || user?.email?.split('@')[0]}
+                                        </span>
+                                        <span className="navbar-dropdown-phone">{user?.email}</span>
                                     </div>
                                     <div className="navbar-dropdown-divider" />
                                     <Link

@@ -1,5 +1,7 @@
 package com.app.localgroup.place;
 
+import com.app.localgroup.group.model.Group;
+import com.app.localgroup.group.repository.GroupRepository;
 import com.app.localgroup.place.dto.MapPlaceDto;
 import com.app.localgroup.place.dto.PlaceDto;
 import com.app.localgroup.place.model.Place;
@@ -20,6 +22,7 @@ public class PlaceService {
     private static final Logger log = LoggerFactory.getLogger(PlaceService.class);
 
     private final PlaceRepository placeRepository;
+    private final GroupRepository groupRepository;
 
     public List<Place> findAll(Optional<Place.Category> category) {
         if (category.isPresent()) return placeRepository.findByCategory(category.get());
@@ -45,8 +48,11 @@ public class PlaceService {
     }
 
     public long activeGroupCount(String placeId) {
-        // Placeholder: real implementation would query GroupRepository
-        return 0L;
+        if (placeId == null) return 0L;
+        return groupRepository.findByPlaceId(placeId).stream()
+                .filter(g -> g.getVisibility() == Group.Visibility.PUBLIC 
+                          && g.getStatus() != Group.Status.EXPIRED)
+                .count();
     }
 
     /**
@@ -98,7 +104,7 @@ public class PlaceService {
 
     /**
      * Convert a Place entity to PlaceDto for API responses.
-     * Includes all new dynamic place fields (externalPlaceId, latitude, longitude, source).
+     * Includes all dynamic place fields (externalPlaceId, latitude, longitude, source).
      * Handles GeoJsonPoint conversion to lat/lng coordinates.
      * 
      * @param place The Place entity to convert

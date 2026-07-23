@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, X } from 'lucide-react';
+import { Send, X, MapPin } from 'lucide-react';
 import { chatService } from '../../services/chatService';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/authService';
@@ -68,12 +68,12 @@ export default function ChatPanel({ group, isOpen, onClose }) {
 
         try {
             chatService.sendMessage(group.id, input.trim());
-            // Optimistic local add
+            // Optimistic local add using username (privacy requirement)
             setMessages((prev) => [
                 ...prev,
                 {
                     senderId: user?.id,
-                    senderEmail: user?.email,
+                    senderUsername: user?.username,
                     content: input.trim(),
                     timestamp: new Date().toISOString(),
                 },
@@ -91,7 +91,15 @@ export default function ChatPanel({ group, isOpen, onClose }) {
     return (
         <div className="chat-panel animate-slide-up">
             <div className="chat-header">
-                <h4>Group Chat</h4>
+                <div>
+                    <h4>Group Chat</h4>
+                    {group?.placeName && (
+                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <MapPin size={12} />
+                            <span>{group.placeName}</span>
+                        </div>
+                    )}
+                </div>
                 <span className={`chat-status ${connected ? 'chat-status--online' : ''}`}>
                     {connected ? '● Connected' : '○ Connecting...'}
                 </span>
@@ -108,9 +116,10 @@ export default function ChatPanel({ group, isOpen, onClose }) {
                 )}
                 {messages.map((msg, i) => {
                     const isMe = msg.senderId === user?.id;
+                    const displayName = msg.senderUsername ? `@${msg.senderUsername}` : 'Member';
                     return (
                         <div key={i} className={`chat-message ${isMe ? 'chat-message--me' : 'chat-message--other'}`}>
-                            {!isMe && <span className="chat-sender">{msg.senderEmail || 'User'}</span>}
+                            {!isMe && <span className="chat-sender">{displayName}</span>}
                             <div className="chat-bubble">
                                 <span>{msg.content}</span>
                             </div>

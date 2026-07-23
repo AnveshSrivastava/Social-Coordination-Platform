@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
-import { CalendarDays, Users, Lock, Globe } from 'lucide-react';
+import { CalendarDays, Users, Lock, Globe, UserCheck } from 'lucide-react';
 import { groupService } from '../../services/groupService';
 import { useToast } from '../../context/ToastContext';
 import './CreateGroupForm.css';
@@ -14,6 +14,7 @@ export default function CreateGroupForm({ place, isOpen, onClose }) {
         dateTime: '',
         maxSize: 4,
         visibility: 'PUBLIC',
+        genderRestriction: 'EVERYONE',
         inviteCode: '',
     });
 
@@ -25,6 +26,7 @@ export default function CreateGroupForm({ place, isOpen, onClose }) {
                 dateTime: new Date(form.dateTime).toISOString(),
                 maxSize: parseInt(form.maxSize),
                 visibility: form.visibility,
+                genderRestriction: form.genderRestriction,
             };
 
             // Use mapPlace flow if place has external data
@@ -109,6 +111,28 @@ export default function CreateGroupForm({ place, isOpen, onClose }) {
                                 <Lock size={14} /> Private
                             </button>
                         </div>
+                    </div>
+                </div>
+
+                <div className="cgf-field" style={{ marginTop: 'var(--space-3)' }}>
+                    <label className="input-label">
+                        <UserCheck size={14} /> Gender Restriction
+                    </label>
+                    <div className="cgf-vis-selector">
+                        {[
+                            { value: 'EVERYONE', label: 'Everyone', icon: '🌍' },
+                            { value: 'MALE_ONLY', label: 'Male Only', icon: '👨' },
+                            { value: 'FEMALE_ONLY', label: 'Female Only', icon: '👩' },
+                        ].map((opt) => (
+                            <button
+                                key={opt.value}
+                                type="button"
+                                className={`cgf-vis-btn ${form.genderRestriction === opt.value ? 'cgf-vis-btn--active' : ''}`}
+                                onClick={() => setForm({ ...form, genderRestriction: opt.value })}
+                            >
+                                <span>{opt.icon}</span> {opt.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
 

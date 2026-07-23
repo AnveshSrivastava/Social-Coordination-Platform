@@ -4,6 +4,7 @@ import com.app.localgroup.chat.dto.ChatMessageDTO;
 import com.app.localgroup.group.model.Group;
 import com.app.localgroup.group.repository.GroupMemberRepository;
 import com.app.localgroup.group.repository.GroupRepository;
+import com.app.localgroup.user.UserService;
 import com.app.localgroup.user.model.User;
 import com.app.localgroup.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,23 @@ public class ChatService {
      * @throws IllegalStateException    if group not ACTIVE or user not allowed
      */
     public void sendMessage(String groupId, String senderId, String content) {
+        // Validate user exists and profile is complete
+        User sender = userRepository.findById(senderId)
+                .orElseThrow(() -> new ChatException(
+                        "Sender not found",
+                        ChatException.ErrorCode.SENDER_NOT_FOUND,
+                        500
+                ));
+
+        if (!UserService.isProfileComplete(sender)) {
+            log.warn("Chat rejected for user {}: profile incomplete", senderId);
+            throw new ChatException(
+                    "Profile must be completed before sending chat messages",
+                    ChatException.ErrorCode.PROFILE_INCOMPLETE,
+                    403
+            );
+        }
+
         // Validate group exists
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new ChatException(
@@ -89,18 +107,11 @@ public class ChatService {
             );
         }
 
-        // Construct and broadcast message
-        User sender = userRepository.findById(senderId)
-                .orElseThrow(() -> new ChatException(
-                        "Sender not found",
-                        ChatException.ErrorCode.SENDER_NOT_FOUND,
-                        500
-                ));
-
+        // Construct and broadcast message using username (privacy requirement)
         ChatMessageDTO message = ChatMessageDTO.builder()
                 .groupId(groupId)
                 .senderId(senderId)
-                .senderEmail(sender.getEmail())
+                .senderUsername(sender.getUsername())
                 .content(content)
                 .timestamp(Instant.now())
                 .build();
@@ -138,7 +149,8 @@ public class ChatService {
             NOT_A_MEMBER,
             USER_BLOCKED,
             CREATOR_NOT_FOUND,
-            SENDER_NOT_FOUND
+            SENDER_NOT_FOUND,
+            PROFILE_INCOMPLETE
         }
     }
 }

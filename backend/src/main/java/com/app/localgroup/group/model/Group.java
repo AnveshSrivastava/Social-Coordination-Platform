@@ -26,11 +26,23 @@ public class Group {
 
     @Builder.Default
     @Indexed
-    private int maxSize = 2; // will be validated on creation
+    private int maxSize = 2;
 
     private Visibility visibility;
 
     private Status status;
+
+    /**
+     * Gender restriction for membership.
+     * Default: EVERYONE (all genders may join).
+     *
+     * Enforcement rules (backend only — see GroupService.joinGroup):
+     * - EVERYONE    → MALE, FEMALE, OTHER may all join
+     * - MALE_ONLY   → only MALE; FEMALE and OTHER are rejected
+     * - FEMALE_ONLY → only FEMALE; MALE and OTHER are rejected
+     */
+    @Builder.Default
+    private GenderRestriction genderRestriction = GenderRestriction.EVERYONE;
 
     private String inviteCodeHash;
 

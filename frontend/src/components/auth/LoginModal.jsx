@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Mail, Phone, Lock } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
@@ -20,6 +21,7 @@ const DEMO_OTP = '000000';
  */
 export default function LoginModal({ isOpen, onClose }) {
     const { login } = useAuth();
+    const navigate = useNavigate();
     const toast = useToast();
     const [step, setStep] = useState('request'); // 'request' | 'verify'
     const [email, setEmail] = useState('');
@@ -58,9 +60,7 @@ export default function LoginModal({ isOpen, onClose }) {
 
     const handleOtpDisplayClose = () => {
         setShowOtpDisplay(false);
-        // Move to verification step and pre-fill the OTP (optional for testing)
         setStep('verify');
-        // Optionally auto-fill for demo: setOtp(generatedOtp);
     };
 
     const handleVerifyOtp = async (e) => {
@@ -74,10 +74,20 @@ export default function LoginModal({ isOpen, onClose }) {
         try {
             const res = await authService.verifyOtp(email, phone, otp);
             if (res?.data) {
-                await login(res.data);
+                const freshUser = await login(res.data);
                 toast.success('Welcome back!');
                 onClose();
                 resetForm();
+
+                const isComplete = Boolean(
+                    freshUser && freshUser.username && freshUser.age !== null && freshUser.gender
+                );
+
+                if (!isComplete) {
+                    navigate('/complete-profile');
+                } else {
+                    navigate('/map');
+                }
             }
         } catch (err) {
             setError(err.message || 'Invalid OTP');
@@ -109,7 +119,6 @@ export default function LoginModal({ isOpen, onClose }) {
         setLoading(true);
         try {
             const response = await authService.requestOtp(DEMO_EMAIL, DEMO_PHONE);
-            // DEMO MODE: Show OTP display modal for demo account
             if (response?.otp) {
                 setGeneratedOtp(response.otp);
                 setShowOtpDisplay(true);
@@ -242,4 +251,3 @@ export default function LoginModal({ isOpen, onClose }) {
         </>
     );
 }
-

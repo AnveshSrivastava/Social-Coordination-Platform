@@ -10,8 +10,10 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 
 /**
- * DTO for chat messages.
- * Ephemeral - never persisted to database.
+ * DTO for ephemeral chat messages (never persisted to database).
+ *
+ * Privacy: senderEmail was removed and replaced with senderUsername.
+ * Email must never be broadcast over WebSocket to group members.
  */
 @Data
 @NoArgsConstructor
@@ -23,7 +25,8 @@ public class ChatMessageDTO {
 
     private String senderId;
 
-    private String senderEmail;
+    /** Sender's public username — NOT their email address. */
+    private String senderUsername;
 
     @NotBlank(message = "Message content cannot be blank")
     @Size(max = 500, message = "Message content cannot exceed 500 characters")

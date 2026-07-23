@@ -1,4 +1,4 @@
-import { Users, MessageCircle, CalendarDays } from 'lucide-react';
+import { Users, MessageCircle, CalendarDays, MapPin } from 'lucide-react';
 import Drawer from '../ui/Drawer';
 import Badge from '../ui/Badge';
 import './MyGroupsDrawer.css';
@@ -24,10 +24,16 @@ export default function MyGroupsDrawer({ isOpen, onClose, groups = [], onOpenCha
                         {activeGroups.map((g) => (
                             <div key={g.id} className="mgd-group-item mgd-group-item--active">
                                 <div className="mgd-group-info">
-                                    <Badge variant="success">Active</Badge>
-                                    <span className="mgd-group-meta">
-                                        <Users size={12} /> {g.memberCount || 1}/{g.maxSize}
-                                    </span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+                                        <MapPin size={14} color="var(--color-primary)" />
+                                        <span>{g.placeName || 'Meeting Spot'}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                                        <Badge variant="success">Active</Badge>
+                                        <span className="mgd-group-meta">
+                                            <Users size={12} /> {g.memberCount || 1}/{g.maxSize}
+                                        </span>
+                                    </div>
                                 </div>
                                 <button className="mgd-chat-btn" onClick={() => onOpenChat?.(g)}>
                                     <MessageCircle size={16} />
@@ -46,16 +52,22 @@ export default function MyGroupsDrawer({ isOpen, onClose, groups = [], onOpenCha
                             return (
                                 <div key={g.id} className="mgd-group-item">
                                     <div className="mgd-group-info">
-                                        <Badge variant={st.variant}>{st.label}</Badge>
-                                        <span className="mgd-group-meta">
-                                            <CalendarDays size={12} />
-                                            {g.dateTime
-                                                ? new Date(g.dateTime).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
-                                                : 'TBD'}
-                                        </span>
-                                        <span className="mgd-group-meta">
-                                            <Users size={12} /> {g.memberCount || 1}/{g.maxSize}
-                                        </span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+                                            <MapPin size={14} color="var(--color-primary)" />
+                                            <span>{g.placeName || 'Meeting Spot'}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                                            <Badge variant={st.variant}>{st.label}</Badge>
+                                            <span className="mgd-group-meta">
+                                                <CalendarDays size={12} />
+                                                {g.dateTime
+                                                    ? new Date(g.dateTime).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+                                                    : 'TBD'}
+                                            </span>
+                                            <span className="mgd-group-meta">
+                                                <Users size={12} /> {g.memberCount || 1}/{g.maxSize}
+                                            </span>
+                                        </div>
                                     </div>
                                     {g.status === 'CONFIRMATION' && (
                                         <button className="mgd-chat-btn" onClick={() => onOpenChat?.(g)}>
