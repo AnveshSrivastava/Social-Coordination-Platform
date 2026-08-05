@@ -277,15 +277,7 @@ export default function ProfilePage() {
                         onChange={(e) => setBioText(e.target.value)}
                         placeholder="Write a brief bio about yourself..."
                         maxLength={250}
-                        style={{
-                            width: '100%',
-                            padding: '12px',
-                            borderRadius: '8px',
-                            background: 'var(--color-bg-secondary, #1a1a24)',
-                            border: '1px solid var(--color-border)',
-                            color: 'var(--color-text-primary)',
-                            resize: 'vertical',
-                        }}
+                        className="profile-bio-textarea"
                     />
                     <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', textAlign: 'right' }}>
                         {bioText.length}/250

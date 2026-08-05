@@ -16,6 +16,7 @@
 
   /* Surface & backgrounds */
   --color-bg: #F8FAFC;
+  --color-bg-secondary: #F1F5F9;
   --color-surface: #FFFFFF;
   --color-surface-hover: #F1F5F9;
   --color-surface-elevated: #FFFFFF;
@@ -24,6 +25,7 @@
 
   /* Text */
   --color-text: #0F172A;
+  --color-text-primary: #0F172A;
   --color-text-secondary: #475569;
   --color-text-muted: #94A3B8;
   --color-text-inverse: #FFFFFF;

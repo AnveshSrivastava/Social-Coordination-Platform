@@ -1,7 +1,9 @@
 /**
  * API Client — fetch wrapper with JWT auto-attach and error handling.
  */
-const BASE_URL =  import.meta.env.VITE_API_URL || "http://localhost:8080";
+const RAW_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+// Strip trailing slashes to avoid double slashes when joining endpoint
+const BASE_URL = RAW_BASE_URL.replace(/\/+$/, "");
 
 export class ApiError extends Error {
   constructor(message, status, data) {
@@ -36,7 +38,8 @@ export async function apiClient(endpoint, options = {}) {
     config.body = JSON.stringify(options.body);
   }
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, config);
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const response = await fetch(`${BASE_URL}${cleanEndpoint}`, config);
 
   if (!response.ok) {
     let data = null;
@@ -59,3 +62,4 @@ export async function apiClient(endpoint, options = {}) {
 }
 
 export default apiClient;
+

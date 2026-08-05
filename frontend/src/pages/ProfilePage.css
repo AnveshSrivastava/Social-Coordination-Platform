@@ -355,6 +355,30 @@
     gap: var(--space-2);
 }
 
+.profile-bio-textarea {
+    width: 100%;
+    padding: var(--space-3);
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: var(--radius-md);
+    color: #0f172a;
+    font-family: inherit;
+    font-size: var(--font-size-base);
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-bio-textarea:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.profile-bio-textarea::placeholder {
+    color: #94a3b8;
+}
+
 /* Responsive Rules */
 @media (max-width: 900px) {
     .profile-dashboard-grid {
